@@ -1,0 +1,57 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Orin.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Orin.Views.OverlayWindow"
+        x:DataType="vm:OverlayWindowViewModel"
+        Title="OverlayWindow"
+        x:Name="Overlay"
+        Background="Transparent"
+        WindowDecorations="None"
+        WindowStartupLocation="Manual"
+        Height="150"
+        Width="600"
+        Position="0,0"
+        Topmost="True"
+        >
+    
+    
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:OverlayWindowViewModel/>
+    </Design.DataContext>
+    
+    <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+       
+        <StackPanel Orientation="Horizontal" Margin="8 4" Spacing="6">
+            <Image Source="{Binding Thumbnail}" Height="40" Name="Thumbnail"/>
+    
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Song}" FontSize="16" Name="Song"/>
+                <TextBlock Text="{Binding Artist}" FontSize="10" Name="Artist"/>
+            </StackPanel>
+        
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                <Button Background="Transparent" Command="{Binding PrevCommand}" CommandParameter="{Binding CurrentSession}"  Classes="Playback">
+
+                    <Svg Path="../Assets/Prev.svg" Height="20" Classes="Playback"/>
+                </Button>
+                
+                <Button Background="Transparent" Command="{Binding PausePlayCommand}" CommandParameter="{Binding CurrentSession}"  Classes="Playback">
+                    <Svg Path="{Binding  PlayingStatusImg}" Height="20" Classes="Playback"/>
+                </Button>
+                
+                <Button Background="Transparent" Command="{Binding SkipCommand}" CommandParameter="{Binding CurrentSession}" Classes="Playback">
+                    <Svg Path="../Assets/Next.svg" Height="20" Classes="Playback"/>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+       
+       
+    </StackPanel>
+
+</Window>
