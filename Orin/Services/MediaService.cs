@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
@@ -9,11 +11,11 @@ namespace Orin.Services;
 
 public interface IMediaService
 {
-    Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync();
-    Task<GlobalSystemMediaTransportControlsSession> GetCurrentMediaSessionAsync();
-    Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync();
-    Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync();
-    Task<GlobalSystemMediaTransportControlsSession?> UpdateCurrentSession();
+    Task<GlobalSystemMediaTransportControlsSessionManager?> InitializeAsync();
+    Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
+    Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
+    Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
+    Task<GlobalSystemMediaTransportControlsSession?> UpdateCurrentSession(GlobalSystemMediaTransportControlsSession CurrentSession);
 }
 
 
@@ -22,22 +24,33 @@ public interface IMediaService
 public class MediaService : IMediaService
 {
     private GlobalSystemMediaTransportControlsSessionManager? _playbackManager;
-    private GlobalSystemMediaTransportControlsSession? _currentSession;
 
-    public async Task InitializeAsync()
+    public async Task<GlobalSystemMediaTransportControlsSessionManager?> InitializeAsync()
     {
-        _playbackManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
-        _currentSession = _playbackManager.GetCurrentSession();
-        
+        return _playbackManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
     }
 
-    public async Task<GlobalSystemMediaTransportControlsSession?>  UpdateCurrentSession()
+    public async Task<List<GlobalSystemMediaTransportControlsSession?>> GetSessions(
+        GlobalSystemMediaTransportControlsSessionManager PlaybackManager)
     {
         if (_playbackManager != null)
         {
-            _currentSession = _playbackManager.GetCurrentSession();
-            if(_currentSession != null)
-                return _currentSession;
+            var sessions = PlaybackManager.GetSessions();
+            if (sessions != null)
+                return sessions.ToList();
+            
+            else return null;
+        }
+        else  return null;
+    }
+
+    public async Task<GlobalSystemMediaTransportControlsSession?>  UpdateCurrentSession(GlobalSystemMediaTransportControlsSession CurrentSession)
+    {
+        if (_playbackManager != null)
+        {
+            CurrentSession = _playbackManager.GetCurrentSession();
+            if(CurrentSession != null)
+                return CurrentSession;
             else 
                 return null;
         }
@@ -47,11 +60,11 @@ public class MediaService : IMediaService
         }
     }
         
-    public async Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync()
+    public async Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession)
     {
         if (_playbackManager != null)
         {
-            var timelineInfo = _playbackManager.GetCurrentSession().GetTimelineProperties();
+            var timelineInfo = CurrentSession.GetTimelineProperties();
             if (timelineInfo != null)
             {
                 return timelineInfo;
@@ -60,11 +73,11 @@ public class MediaService : IMediaService
         }else return null;
     }
     
-    public async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync()
+    public async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession)
     {
         if (_playbackManager != null)
         {
-            var playbackInfo = _currentSession.GetPlaybackInfo();
+            var playbackInfo = CurrentSession.GetPlaybackInfo();
             if (playbackInfo != null)
             {
                 return playbackInfo;
@@ -79,25 +92,12 @@ public class MediaService : IMediaService
             return null;
         }
     }
-
-    public async Task<GlobalSystemMediaTransportControlsSession> GetCurrentMediaSessionAsync()
-    {
-        if (_currentSession != null)
-        {
-            return _currentSession;
-        }
-        else
-        {
-            return null;
-        }
-        
-    }   
     
-    public async Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync()
+    public async Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession CurrentSession)
     {
-        if (_currentSession != null)
+        if (CurrentSession != null)
         {
-            var mediaProperties = await _currentSession.TryGetMediaPropertiesAsync();
+            var mediaProperties = await CurrentSession.TryGetMediaPropertiesAsync();
 
             if (mediaProperties != null)
             {

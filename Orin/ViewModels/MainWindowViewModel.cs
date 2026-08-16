@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Media.Control;
-using Windows.UI.Composition.Desktop;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,6 +25,23 @@ namespace Orin.ViewModels
         [ObservableProperty] 
         private bool? _isOverlayVisible;
 
+        [ObservableProperty]
+        private List<GlobalSystemMediaTransportControlsSession> _mediaSessions = new();
+
+        private GlobalSystemMediaTransportControlsSession _selectedSession;
+
+
+        public GlobalSystemMediaTransportControlsSession SelectedSession
+        {
+            get => _selectedSession;
+            set
+            {
+                _selectedSession = value;
+                OverlayWindowViewModel.CurrentSession = value;
+            }
+        
+        }
+
 
         public MainWindowViewModel()
         {
@@ -45,6 +62,7 @@ namespace Orin.ViewModels
             }
         }
         
+        
         [RelayCommand]
         public async Task OverlayButtonClick()
         {
@@ -56,11 +74,12 @@ namespace Orin.ViewModels
             }
             else if (IsOverlayVisible == false)
             {
-                MediaService Service = new();
+                MediaService mediaService = new();
                 try
                 {
-                    await Service.InitializeAsync();
-                    OverlayWindowViewModel = new(Service);
+                    var pbManager = await mediaService.InitializeAsync();
+                    MediaSessions = await mediaService.GetSessions(pbManager);
+                    OverlayWindowViewModel = new(mediaService);
 
                     Debug.WriteLine($"Song: {OverlayWindowViewModel.Song}");
                     

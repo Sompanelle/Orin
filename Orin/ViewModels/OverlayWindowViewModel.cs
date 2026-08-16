@@ -18,6 +18,8 @@ using Svg.Skia;
 
 namespace Orin.ViewModels
 {
+    //TODO: Window Resizing,, auto pls
+    //TODO: Click thru thanks! 
     public partial class OverlayWindowViewModel : ViewModelBase
     {
         [ObservableProperty]
@@ -32,16 +34,20 @@ namespace Orin.ViewModels
         [ObservableProperty] 
         private bool _isPlaying;
 
+        [ObservableProperty] 
+        private bool _displayPlaybackControls = true;
+
         private IMediaService _mediaService;
         
         private GlobalSystemMediaTransportControlsSessionTimelineProperties? _timelineInfo;
+        [ObservableProperty]
         private GlobalSystemMediaTransportControlsSessionPlaybackInfo? _playbackInfo;
         [ObservableProperty]
         private GlobalSystemMediaTransportControlsSession? _currentSession;
         private GlobalSystemMediaTransportControlsSessionMediaProperties? _mediaProperties;
 
-        
-        public OverlayWindowViewModel(IMediaService MediaService)
+
+        public OverlayWindowViewModel()
         {
             if (Design.IsDesignMode)
             {
@@ -49,14 +55,20 @@ namespace Orin.ViewModels
                 Artist = "Freddie Gibbs";
                 
             }
-
+        }
+        
+        public OverlayWindowViewModel(IMediaService MediaService)
+        {
             
             _mediaService = MediaService;
             _ = InitializeOverlay();
             
         }
-        
-        
+
+        public async Task UpdateCurrentSession()
+        {
+            CurrentSession = await _mediaService.UpdateCurrentSession(CurrentSession);
+        }
         
         
         public async Task InitializeOverlay()
@@ -69,43 +81,48 @@ namespace Orin.ViewModels
         public async Task AppLoop()
         {
             bool running = true;
-            while (running)
+            await Task.Run(async () =>
             {
-                await Task.Run(async () =>
+                while (running)
                 {
-                    while (IsPlaying)
+                    await GetInfo();
+                    if (IsPlaying)
                     {
-                        await GetInfo();
                         await Task.Delay(500);
                     }
-                    
-
-                    while (!IsPlaying)
+                    else if (!IsPlaying)
                     {
-                        await GetCurrentPlaybackInfo();
                         await Task.Delay(2000);
                     }
 
-                });
-            }
+                }
+            });
         }
         
         public async Task GetInfo()
         {
-            _playbackInfo = await _mediaService.GetPlaybackInfoAsync();
-            CurrentSession = await _mediaService.GetCurrentMediaSessionAsync();
-            _timelineInfo = await _mediaService.GetTimeLineInfoAsync();
-            _mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync();
-            
-            await GetCurrentMedia();
-            UpdatePlaybackStatus(_playbackInfo);
-            await GetCurrentPlaybackInfo();
-            await GetCurrentTimeLineInfo();
+            if (CurrentSession == null)
+            {
+                DisplayPlaybackControls = false;
+                await UpdateCurrentSession();
+            }
+            else
+            {
+                DisplayPlaybackControls = true;
+                await GetCurrentMedia();
+                PlaybackInfo = await GetCurrentPlaybackInfo();
+                if (PlaybackInfo != null)
+                {
+                    await UpdatePlaybackStatus(PlaybackInfo);
+                }
+            }
+
             
         }
         
         private async Task GetCurrentMedia()
         {
+            _mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync(CurrentSession);
             if (_mediaProperties != null)
             {
                 Song = _mediaProperties.Title;
@@ -122,29 +139,33 @@ namespace Orin.ViewModels
                         Thumbnail = bitmap;
                     });
                 }
-               
             }
 
+            if (_mediaProperties == null)
+            {
+                Song = "No media playing";
+                Artist = "";
+            }
         }
 
-        private async Task GetCurrentPlaybackInfo()
+        private async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetCurrentPlaybackInfo()
         {
-            _playbackInfo = await _mediaService.GetPlaybackInfoAsync();
-            if (_playbackInfo != null)
+            if (CurrentSession != null)
             {
-                if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-                    IsPlaying = true;
-                else if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
-                    IsPlaying = false;
-                await Task.Delay(100);
-                await _mediaService.UpdateCurrentSession();
-                _playbackInfo = await _mediaService.GetPlaybackInfoAsync();
-                UpdatePlaybackStatus(_playbackInfo);
+                var pbInfo = await _mediaService.GetPlaybackInfoAsync(CurrentSession);
+                if (pbInfo != null)
+                {
+                    if (pbInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                        IsPlaying = true;
+                    else if (pbInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
+                        IsPlaying = false;
+                    return pbInfo;
+                }
+                else return null;
             }
             else
             {
-                
-
+                return null;
             }
         }
 
@@ -161,9 +182,9 @@ namespace Orin.ViewModels
         }
         
         //Update Playback Icon Function
-        void UpdatePlaybackStatus(GlobalSystemMediaTransportControlsSessionPlaybackInfo PlaybackInfo)
+        async Task UpdatePlaybackStatus(GlobalSystemMediaTransportControlsSessionPlaybackInfo PlaybackInfo)
         {
-            Dispatcher.UIThread.Invoke(() =>
+             await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     try
                     {
@@ -185,44 +206,51 @@ namespace Orin.ViewModels
         [RelayCommand]
         async Task PausePlay(GlobalSystemMediaTransportControlsSession CurrentSession)
         {
-            await _mediaService.GetCurrentMediaSessionAsync();
-            _playbackInfo = await _mediaService.GetPlaybackInfoAsync();
-            
-            
-            if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+            if (CurrentSession != null)
             {
-                await CurrentSession.TryPauseAsync();
-                
-            }
+                _playbackInfo = await _mediaService.GetPlaybackInfoAsync(CurrentSession);
 
-            if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
-            {
-                await CurrentSession.TryPlayAsync();
+
+                if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                {
+                    await CurrentSession.TryPauseAsync();
+
+                }
+
+                if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
+                {
+                    await CurrentSession.TryPlayAsync();
+                }
+
+                await Task.Delay(200);
+                PlaybackInfo = await GetCurrentPlaybackInfo();
+                if (PlaybackInfo != null)
+                    await UpdatePlaybackStatus(PlaybackInfo);
             }
-            
-            await GetCurrentPlaybackInfo();
-            
+            //TODO
         }
-        
-        
+
+
         [RelayCommand]
         private async Task Skip(GlobalSystemMediaTransportControlsSession CurrentSession)
         {
-            CurrentSession.TrySkipNextAsync();
-            await Task.Delay(100);
-            await _mediaService.UpdateCurrentSession();
-            _mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync();
-            await GetCurrentMedia();
+            if (CurrentSession != null)
+            {
+                CurrentSession.TrySkipNextAsync();
+                await Task.Delay(200);
+                await GetCurrentMedia();
+            }
         }
 
         [RelayCommand]
         private async Task Prev(GlobalSystemMediaTransportControlsSession CurrentSession)
         {
-            CurrentSession.TrySkipPreviousAsync();
-            await Task.Delay(100);
-            await _mediaService.UpdateCurrentSession();
-            _mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync();
-            await GetCurrentMedia();
+            if (CurrentSession != null)
+            {
+                CurrentSession.TrySkipPreviousAsync();
+                await Task.Delay(200);
+                await GetCurrentMedia();
+            }
         }
     }
     

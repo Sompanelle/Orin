@@ -13,11 +13,22 @@
 
 
         
-        <StackPanel>
+        <StackPanel Name="OverlayStackPanel">
 
                 <Button Command="{Binding OverlayButtonClickCommand}" Content="{Binding OverlayText}">
-                
                 </Button>
+                
+                
+                <ComboBox ItemsSource="{Binding MediaSessions}" PlaceholderText="Media Source" SelectedItem="{Binding SelectedSession}">
+                        <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                        <TextBlock Text="{Binding SourceAppUserModelId}">
+                                                
+                                        </TextBlock>
+                                </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                </ComboBox>
+                
         </StackPanel>
         
     

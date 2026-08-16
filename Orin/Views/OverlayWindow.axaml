@@ -35,8 +35,8 @@
                 <TextBlock Text="{Binding Artist}" FontSize="10" Name="Artist"/>
             </StackPanel>
         
-            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                <Button Background="Transparent" Command="{Binding PrevCommand}" CommandParameter="{Binding CurrentSession}"  Classes="Playback">
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" IsVisible="{Binding DisplayPlaybackControls}">
+                <Button Background="Transparent" Command="{Binding PrevCommand}" CommandParameter="{Binding CurrentSession}" Classes="Playback">
 
                     <Svg Path="../Assets/Prev.svg" Height="20" Classes="Playback"/>
                 </Button>
