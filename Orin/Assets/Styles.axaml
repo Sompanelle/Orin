@@ -18,5 +18,10 @@
         <Setter Property="Background" Value="Transparent"></Setter>
     </Style>
     
+    <Style Selector="Button.RefreshButton /template/ ContentPresenter" >
+        <Setter Property="Background" Value="Transparent"/>
+        
+    </Style>
+    
     
 </Styles>

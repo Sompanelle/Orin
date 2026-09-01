@@ -6,38 +6,46 @@ using Windows.Media.Control;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Orin.Services;
 using Orin.Views;
 
 namespace Orin.ViewModels
 {
-    public partial class MainWindowViewModel : ViewModelBase
+    public partial class MainWindowViewModel : ObservableRecipient, IRecipient<ToggleOverlayMessage>
     {
 
         [ObservableProperty] 
-        private OverlayWindow _overlayWindow;
+        private OverlayWindow? _overlayWindow;
         [ObservableProperty] 
-        private OverlayWindowViewModel _overlayWindowViewModel;
+        private OverlayWindowViewModel? _overlayWindowViewModel;
 
         [ObservableProperty] 
-        private string _overlayText;
+        private string? _overlayText;
+        
+        private List<string> _overlayTexts = new() { "Show Overlay", "Hide Overlay", "Open Overlay Failed"};
 
         [ObservableProperty] 
-        private bool? _isOverlayVisible;
+        private bool? _isOverlayVisible = false;
+
+        private MediaService? _mediaService;
+        
+        private GlobalSystemMediaTransportControlsSessionManager? _sessionManager;
 
         [ObservableProperty]
-        private List<GlobalSystemMediaTransportControlsSession> _mediaSessions = new();
+        private List<GlobalSystemMediaTransportControlsSession?> _mediaSessions = new();
 
-        private GlobalSystemMediaTransportControlsSession _selectedSession;
+        private GlobalSystemMediaTransportControlsSession? _selectedSession;
 
 
-        public GlobalSystemMediaTransportControlsSession SelectedSession
+        public GlobalSystemMediaTransportControlsSession? SelectedSession
         {
             get => _selectedSession;
             set
             {
                 _selectedSession = value;
-                OverlayWindowViewModel.CurrentSession = value;
+                if (OverlayWindowViewModel != null)
+                    OverlayWindowViewModel.CurrentSession = value;
             }
         
         }
@@ -50,65 +58,81 @@ namespace Orin.ViewModels
                 OverlayText = "Show Overlay";
             }
 
+            IsActive = true;
+
             Initialize();
         }
 
-        public void Initialize()
+        private void Initialize()
         {
-            if (IsOverlayVisible == null)
-            {
-                OverlayText = "Show Overlay";
-                IsOverlayVisible = false;
-            }
+            OverlayText = _overlayTexts[0];
+        }
+
+        public async void Receive(ToggleOverlayMessage message)
+        {
+           await OverlayButtonClick();
         }
         
-        
         [RelayCommand]
-        public async Task OverlayButtonClick()
+        private async Task OverlayButtonClick()
         {
             if (IsOverlayVisible == true)
             {
-                OverlayWindow.Close();
-                IsOverlayVisible = false;
-                OverlayText = "Show Overlay";
+                if (OverlayWindow != null)
+                {
+                    OverlayWindow.Close();
+                    IsOverlayVisible = false;
+                    OverlayText = _overlayTexts[0];
+                }
             }
-            else if (IsOverlayVisible == false)
+            else
             {
-                MediaService mediaService = new();
+                _mediaService = new();
                 try
                 {
-                    var pbManager = await mediaService.InitializeAsync();
-                    MediaSessions = await mediaService.GetSessions(pbManager);
-                    OverlayWindowViewModel = new(mediaService);
-
-                    Debug.WriteLine($"Song: {OverlayWindowViewModel.Song}");
-                    
+                    _sessionManager = await _mediaService.InitializeAsync();
+                    if (_sessionManager == null)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else
+                    {
+                        MediaSessions = await _mediaService.GetSessions(_sessionManager);
+                        OverlayWindowViewModel = new(_mediaService);
+                    }
 
                     OverlayWindow = new()
                     {
                         DataContext = OverlayWindowViewModel
                     };
+                    
                     OverlayWindow.Show();
-                    
-                    
-                    OverlayText = "Hide Overlay";
+
+                    OverlayText = _overlayTexts[1];
                     IsOverlayVisible = true;
                 }
                 catch(Exception ex)
                 {
+                    Debug.WriteLine(ex);
                     IsOverlayVisible = false;
-                    OverlayText = "Opened Failed";
+                    OverlayText = _overlayTexts[2];
                 }
-                
-
-                
-                //help it start up
-
-                
 
             }
         }
 
+
+        [RelayCommand]
+        public async Task RefreshMediaSessions()
+        {
+            if (_mediaService != null &&  _sessionManager != null)
+                MediaSessions = await _mediaService.GetSessions(_sessionManager);
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+        
     }
 
 }

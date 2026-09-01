@@ -1,51 +1,50 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
-using Avalonia.Svg;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Orin.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using Orin.Services;
-using Svg.Skia;
 
 
 namespace Orin.ViewModels
 {
     //TODO: Window Resizing,, auto pls
     //TODO: Click thru thanks! 
-    public partial class OverlayWindowViewModel : ViewModelBase
+    public partial class OverlayWindowViewModel : ObservableRecipient, IRecipient<ToggleClickThroughMessage>
     {
         [ObservableProperty]
-        private string _song;
+        private string? _song;
         [ObservableProperty] 
-        private string _artist;
+        private string? _artist;
         [ObservableProperty] 
-        private Bitmap _thumbnail;
+        private Bitmap? _thumbnail;
         [ObservableProperty]
-        private string _playingStatusImg;
+        private string? _playingStatusImg;
     
         [ObservableProperty] 
         private bool _isPlaying;
 
         [ObservableProperty] 
-        private bool _displayPlaybackControls = true;
+        private bool _displayPlaybackControls;
 
         private IMediaService _mediaService;
         
         private GlobalSystemMediaTransportControlsSessionTimelineProperties? _timelineInfo;
         [ObservableProperty]
+        
         private GlobalSystemMediaTransportControlsSessionPlaybackInfo? _playbackInfo;
         [ObservableProperty]
+        
         private GlobalSystemMediaTransportControlsSession? _currentSession;
+        
         private GlobalSystemMediaTransportControlsSessionMediaProperties? _mediaProperties;
-
+        
 
         public OverlayWindowViewModel()
         {
@@ -53,18 +52,36 @@ namespace Orin.ViewModels
             {
                 Song = "Crime Pays";
                 Artist = "Freddie Gibbs";
-                
             }
+
+            IsActive = true;
+            _mediaService = new MediaService();
+            _mediaService.InitializeAsync();
+            _ = InitializeOverlay();
+            DisplayPlaybackControls = true;
         }
         
         public OverlayWindowViewModel(IMediaService MediaService)
         {
-            
             _mediaService = MediaService;
             _ = InitializeOverlay();
-            
+            IsActive = true;
+            DisplayPlaybackControls = true;
         }
 
+        public void Receive(ToggleClickThroughMessage message)
+        {
+            
+            if (DisplayPlaybackControls)
+            {
+                DisplayPlaybackControls = false;
+            }
+            else
+            {
+                DisplayPlaybackControls = true;
+            }
+        }
+        
         public async Task UpdateCurrentSession()
         {
             CurrentSession = await _mediaService.UpdateCurrentSession(CurrentSession);
@@ -74,41 +91,36 @@ namespace Orin.ViewModels
         public async Task InitializeOverlay()
         {
             await GetInfo();
-
             await AppLoop();
         }
         
         public async Task AppLoop()
         {
             bool running = true;
-            await Task.Run(async () =>
+            while (running)
             {
-                while (running)
+                
+                await GetInfo();
+                if (IsPlaying)
                 {
-                    await GetInfo();
-                    if (IsPlaying)
-                    {
-                        await Task.Delay(500);
-                    }
-                    else if (!IsPlaying)
-                    {
-                        await Task.Delay(2000);
-                    }
-
+                    await Task.Delay(500);
                 }
-            });
+                else if (!IsPlaying)
+                {
+                    await Task.Delay(1500);
+                }
+            }
         }
+        
         
         public async Task GetInfo()
         {
             if (CurrentSession == null)
             {
-                DisplayPlaybackControls = false;
                 await UpdateCurrentSession();
             }
             else
             {
-                DisplayPlaybackControls = true;
                 await GetCurrentMedia();
                 PlaybackInfo = await GetCurrentPlaybackInfo();
                 if (PlaybackInfo != null)
@@ -118,6 +130,13 @@ namespace Orin.ViewModels
             }
 
             
+        }
+        
+        [RelayCommand]
+        private void ToggleWindow(Window Window)
+        {
+            Window.IsVisible = !Window.IsVisible;
+            Window.ShowInTaskbar = !Window.ShowInTaskbar;
         }
         
         private async Task GetCurrentMedia()
@@ -133,7 +152,7 @@ namespace Orin.ViewModels
                     MemoryStream stream = new MemoryStream();
                     await imgStream.AsStream().CopyToAsync(stream);
                     stream.Position = 0;
-                    Bitmap bitmap = new(stream);
+                    Bitmap bitmap = new(stream); 
                     Dispatcher.UIThread.Post(() =>
                     {
                         Thumbnail = bitmap;
@@ -169,17 +188,17 @@ namespace Orin.ViewModels
             }
         }
 
-        private async Task GetCurrentTimeLineInfo()
-        {
-            if (_timelineInfo != null)
-            {
-                
-            }
-            else
-            {
-
-            }
-        }
+        // private async Task GetCurrentTimeLineInfo()
+        // {
+        //     if (_timelineInfo != null)
+        //     {
+        //         
+        //     }
+        //     else
+        //     {
+        //
+        //     }
+        // }
         
         //Update Playback Icon Function
         async Task UpdatePlaybackStatus(GlobalSystemMediaTransportControlsSessionPlaybackInfo PlaybackInfo)
@@ -243,7 +262,7 @@ namespace Orin.ViewModels
         }
 
         [RelayCommand]
-        private async Task Prev(GlobalSystemMediaTransportControlsSession CurrentSession)
+        public async Task Prev(GlobalSystemMediaTransportControlsSession CurrentSession)
         {
             if (CurrentSession != null)
             {
@@ -252,6 +271,7 @@ namespace Orin.ViewModels
                 await GetCurrentMedia();
             }
         }
+        
     }
     
 }
