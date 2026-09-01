@@ -15,6 +15,9 @@
         
         <StackPanel Name="OverlayStackPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
                 
+                <TextBlock HorizontalAlignment="Center">
+                        Overlay Options
+                </TextBlock>
                 
                 <Button HorizontalAlignment="Center"
                         Command="{Binding OverlayButtonClickCommand}" 
@@ -48,9 +51,6 @@
 
                 </StackPanel>
                 
-                <TextBlock HorizontalAlignment="Center">
-                        Overlay Options
-                </TextBlock>
 
         </StackPanel>
         
