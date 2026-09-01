@@ -5,3 +5,5 @@
 public record ToggleOverlayMessage();
 
 public record ToggleClickThroughMessage();
+
+public record ResizeWindowMessage(int Width);

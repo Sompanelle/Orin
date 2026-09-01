@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using ExCSS;
 using Orin.Services;
 
 
@@ -26,12 +27,22 @@ namespace Orin.ViewModels
         private Bitmap? _thumbnail;
         [ObservableProperty]
         private string? _playingStatusImg;
+
+        [ObservableProperty]
+        private string _svgColor = "white";
+
+        [ObservableProperty]
+        private string _svgColorString;
     
         [ObservableProperty] 
         private bool _isPlaying;
 
         [ObservableProperty] 
         private bool _displayPlaybackControls;
+
+        private bool _isClickThrough;
+
+        private int _lastLength;
 
         private IMediaService _mediaService;
         
@@ -53,48 +64,31 @@ namespace Orin.ViewModels
                 Song = "Crime Pays";
                 Artist = "Freddie Gibbs";
             }
-
-            IsActive = true;
             _mediaService = new MediaService();
             _mediaService.InitializeAsync();
             _ = InitializeOverlay();
-            DisplayPlaybackControls = true;
+            
         }
         
         public OverlayWindowViewModel(IMediaService MediaService)
         {
             _mediaService = MediaService;
             _ = InitializeOverlay();
+        }
+        
+        private async Task InitializeOverlay()
+        {
             IsActive = true;
-            DisplayPlaybackControls = true;
-        }
-
-        public void Receive(ToggleClickThroughMessage message)
-        {
             
-            if (DisplayPlaybackControls)
-            {
-                DisplayPlaybackControls = false;
-            }
-            else
-            {
-                DisplayPlaybackControls = true;
-            }
-        }
-        
-        public async Task UpdateCurrentSession()
-        {
-            CurrentSession = await _mediaService.UpdateCurrentSession(CurrentSession);
-        }
-        
-        
-        public async Task InitializeOverlay()
-        {
+            DisplayPlaybackControls = true;
+            SvgColorString = $".playback {{ fill: {SvgColor};}}";
+            
+            
             await GetInfo();
             await AppLoop();
         }
         
-        public async Task AppLoop()
+        private async Task AppLoop()
         {
             bool running = true;
             while (running)
@@ -113,11 +107,12 @@ namespace Orin.ViewModels
         }
         
         
-        public async Task GetInfo()
+        private async Task GetInfo()
         {
-            if (CurrentSession == null)
+            if (IsSessionValid(CurrentSession) == false)
             {
                 await UpdateCurrentSession();
+                await GetCurrentMedia();
             }
             else
             {
@@ -128,8 +123,12 @@ namespace Orin.ViewModels
                     await UpdatePlaybackStatus(PlaybackInfo);
                 }
             }
-
             
+        }
+        
+        private async Task UpdateCurrentSession()
+        {
+            CurrentSession = await _mediaService.UpdateCurrentSession(CurrentSession);
         }
         
         [RelayCommand]
@@ -157,14 +156,28 @@ namespace Orin.ViewModels
                     {
                         Thumbnail = bitmap;
                     });
+                    
+                    //TODO: Rewrite this
+                    double newLength = (Song.Length * 12) + 70;
+                    if (newLength > _lastLength || newLength < _lastLength)
+                    {
+                        //16 = font size
+                        _lastLength = (int)newLength;
+                        WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
+                    }
                 }
             }
 
             if (_mediaProperties == null)
             {
+                DisplayPlaybackControls = false;
                 Song = "No media playing";
                 Artist = "";
             }
+        }
+        public void Receive(ToggleClickThroughMessage message)
+        {
+            DisplayPlaybackControls = !DisplayPlaybackControls;
         }
 
         private async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetCurrentPlaybackInfo()
@@ -207,10 +220,16 @@ namespace Orin.ViewModels
                 {
                     try
                     {
-                        if (PlaybackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-                            PlayingStatusImg = "avares://Orin/Assets/Pause.svg";
-                        else if (PlaybackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
-                            PlayingStatusImg = "avares://Orin/Assets/Play.svg";
+                        switch (PlaybackInfo.PlaybackStatus)
+                        {
+                            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:
+                                PlayingStatusImg = "avares://Orin/Assets/Pause.svg";
+                                break;
+                            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
+                                PlayingStatusImg = "avares://Orin/Assets/Play.svg";
+                                break;
+                        }
+                            
                     }
                     
                     catch (Exception e)
@@ -223,22 +242,24 @@ namespace Orin.ViewModels
         }
 
         [RelayCommand]
-        async Task PausePlay(GlobalSystemMediaTransportControlsSession CurrentSession)
+        async Task PausePlay(GlobalSystemMediaTransportControlsSession Session)
         {
-            if (CurrentSession != null)
+            if (IsSessionValid(Session))
             {
-                _playbackInfo = await _mediaService.GetPlaybackInfoAsync(CurrentSession);
+                PlaybackInfo = await _mediaService.GetPlaybackInfoAsync(Session);
 
-
-                if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                if (PlaybackInfo != null)
                 {
-                    await CurrentSession.TryPauseAsync();
-
-                }
-
-                if (_playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
-                {
-                    await CurrentSession.TryPlayAsync();
+                    switch (PlaybackInfo.PlaybackStatus)
+                    {
+                        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:
+                            await Session.TryPauseAsync();
+                            break;
+                        case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
+                            await Session.TryPlayAsync();
+                            break;
+                    
+                    }
                 }
 
                 await Task.Delay(200);
@@ -251,25 +272,33 @@ namespace Orin.ViewModels
 
 
         [RelayCommand]
-        private async Task Skip(GlobalSystemMediaTransportControlsSession CurrentSession)
+        private async Task Skip(GlobalSystemMediaTransportControlsSession Session)
         {
-            if (CurrentSession != null)
+            if (IsSessionValid(Session))
             {
-                CurrentSession.TrySkipNextAsync();
+                Session.TrySkipNextAsync();
                 await Task.Delay(200);
                 await GetCurrentMedia();
             }
         }
 
         [RelayCommand]
-        public async Task Prev(GlobalSystemMediaTransportControlsSession CurrentSession)
+        private async Task Prev(GlobalSystemMediaTransportControlsSession Session)
         {
-            if (CurrentSession != null)
+            if (IsSessionValid(Session))
             {
-                CurrentSession.TrySkipPreviousAsync();
+                Session.TrySkipPreviousAsync();
                 await Task.Delay(200);
                 await GetCurrentMedia();
             }
+        }
+
+        private bool IsSessionValid(GlobalSystemMediaTransportControlsSession? Session)
+        {
+            if (Session != null && Session.GetPlaybackInfo() != null)
+                return true;
+            else
+                return false;
         }
         
     }

@@ -9,10 +9,7 @@
     <!-- Add Styles Here -->
     
     
-    <Style Selector="Svg.Playback">
-        <Setter Property="Css" Value=".playback { fill: white;}"></Setter>
-    </Style>
-    
+
 
     <Style Selector="Button.Playback /template/ ContentPresenter" > 
         <Setter Property="Background" Value="Transparent"></Setter>

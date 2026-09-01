@@ -8,7 +8,7 @@
         x:DataType="vm:OverlayWindowViewModel"
         Title="OverlayWindow"
         x:Name="Overlay"
-        Background="Transparent"
+        Background="Green"
         TransparencyLevelHint="Transparent"
         WindowDecorations="None"
         WindowStartupLocation="Manual"
@@ -16,8 +16,6 @@
         Width="400"
         Position="0,0"
         Topmost="True"
-        
-        
         >
     
     
@@ -28,7 +26,12 @@
         <vm:OverlayWindowViewModel/>
     </Design.DataContext>
     
-
+    <Window.Styles>
+        <Style Selector="Svg.Playback">
+            <Setter Property="Css" Value="{Binding SvgColorString}"></Setter>
+        </Style>
+    </Window.Styles>
+    
         
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
            

@@ -20,16 +20,20 @@ using WinRT;
 
 namespace Orin.Views;
 
-public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessage>
+public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessage>, IRecipient<ResizeWindowMessage>
 {
 
     private IPlatformHandle? _platformHandle;
     //win 32 consts https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles
-    //TODO: Label these maybe..
+    
+    //extended Styles
     private const int GWL_EXSTYLE = -20;
+    
+    //general overlay properties (self-explanatory)
     private const uint WS_EX_TOPMOST = 0x00000008;
     private const uint WS_EX_NOACTIVATE = (uint)0x08000000L;
     private const uint WS_EX_LAYERED = (uint)0x00080000L;
+    //allows click through
     private const uint WS_EX_TRANSPARENT = (uint)0x00000020L;
     
     //Get Window Style Function
@@ -44,7 +48,7 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
     private static extern bool  SetWindowPos(IntPtr hWnd, int x, int y, int cx, int cy, uint wFlags);
     
-    //pos variables (for no change)
+    //pos variables (for no change, also self-explanatory)
     private const uint SWP_NOMOVE = 0x0002;
     private const uint SWP_NOSIZE = 0x0001;
     private const uint SWP_NOZORDER = 0x0004;
@@ -54,19 +58,14 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     {
         InitializeComponent();
     }
-
-    public void Receive(ToggleClickThroughMessage message)
-    {
-        ToggleClickThrough();
-    }
     
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
         WeakReferenceMessenger.Default.Register<ToggleClickThroughMessage>(this);
+        WeakReferenceMessenger.Default.Register<ResizeWindowMessage>(this);
         OverlayOpened();
     }
-
     
     void OverlayOpened()
     {
@@ -84,7 +83,20 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
         }
         
     }
+    
+    //message responses/reception
+    
+    public void Receive(ToggleClickThroughMessage message)
+    {
+        ToggleClickThrough();
+    }
 
+    public void Receive(ResizeWindowMessage message)
+    {
+        Width = message.Width;
+    }
+    
+    
     public IPlatformHandle? GetPlatform()
     {
         var platform = TryGetPlatformHandle();
