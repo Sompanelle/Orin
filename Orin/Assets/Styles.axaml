@@ -20,5 +20,9 @@
         
     </Style>
     
+    <Style Selector="StackPanel.MainWindowStack">
+        <Setter Property="Spacing" Value="8"/>
+    </Style>
+    
     
 </Styles>

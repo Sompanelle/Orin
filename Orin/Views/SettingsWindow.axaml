@@ -1,0 +1,65 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Orin.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="400"
+        x:Class="Orin.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        x:CompileBindings="True"
+        WindowStartupLocation="CenterOwner"
+        Title="Settings"
+        Width="300"
+        Height="300"
+        Background="Transparent"
+        WindowDecorations="None"
+        >
+        
+        
+        <Design.DataContext>
+                <vm:SettingsViewModel/>
+        </Design.DataContext>
+
+        
+        <Border ClipToBounds="True"
+                CornerRadius="12"
+                Margin="10"
+                Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                <Grid Margin="12">
+                        
+                        <Grid.ColumnDefinitions>
+                                
+                        </Grid.ColumnDefinitions>
+                        
+                        <Grid.RowDefinitions>
+                                Auto, *, Auto
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock HorizontalAlignment="Center">Settings</TextBlock>
+                        
+                        <StackPanel Grid.Row="1">
+                                
+                                <TextBlock HorizontalAlignment="Center">Default Behaviors</TextBlock>
+                                <CheckBox Content="Overlay Click Through" IsChecked="{Binding IsClickThroughDefault}"></CheckBox>
+                                
+                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" >
+                                        <TextBlock VerticalAlignment="Center">Theme: </TextBlock>
+                                        <ComboBox PlaceholderText="Theme" ItemsSource="{Binding ThemeList}" SelectedValue="{Binding SelectedTheme}"></ComboBox>
+                                </StackPanel>
+
+                        </StackPanel>
+                
+                        <StackPanel Grid.Row="2" 
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    HorizontalAlignment="Center"
+                                    Margin="8">
+                        
+                                <Button Command="{Binding SaveSettingsCommand}">Save Settings</Button>
+                                <Button Command="{Binding CloseSettingsCommand}">Close Window</Button>
+                        
+                        </StackPanel>
+                </Grid>
+        </Border>
+        
+</Window>

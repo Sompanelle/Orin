@@ -17,23 +17,18 @@ namespace Orin.ViewModels
 
         [ObservableProperty] 
         private OverlayWindow? _overlayWindow;
-        [ObservableProperty] 
-        private OverlayWindowViewModel? _overlayWindowViewModel;
-
-        [ObservableProperty] 
-        private string? _overlayText;
         
-        private List<string> _overlayTexts = new() { "Show Overlay", "Hide Overlay", "Open Overlay Failed"};
+        [ObservableProperty] private string? _overlayText;
 
-        [ObservableProperty] 
-        private bool? _isOverlayVisible = false;
+        private List<string> _overlayTexts = new() { "Show Overlay", "Hide Overlay", "Open Overlay Failed" };
+
+        [ObservableProperty] private bool _isOverlayVisible;
 
         private MediaService? _mediaService;
-        
+
         private GlobalSystemMediaTransportControlsSessionManager? _sessionManager;
 
-        [ObservableProperty]
-        private List<GlobalSystemMediaTransportControlsSession?> _mediaSessions = new();
+        [ObservableProperty] private List<GlobalSystemMediaTransportControlsSession?> _mediaSessions = new();
 
         private GlobalSystemMediaTransportControlsSession? _selectedSession;
 
@@ -44,10 +39,10 @@ namespace Orin.ViewModels
             set
             {
                 _selectedSession = value;
-                if (OverlayWindowViewModel != null)
-                    OverlayWindowViewModel.CurrentSession = value;
+                if (OverlayWindow.DataContext != null)
+                    OverlayWindow.DataContext = value;
             }
-        
+
         }
 
 
@@ -55,12 +50,13 @@ namespace Orin.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                OverlayText = "Show Overlay";
+                OverlayText = _overlayTexts[0];
             }
-
-            IsActive = true;
-
-            Initialize();
+            else
+            {
+                IsActive = true;
+                Initialize();
+            }
         }
 
         private void Initialize()
@@ -70,13 +66,13 @@ namespace Orin.ViewModels
 
         public async void Receive(ToggleOverlayMessage message)
         {
-           await OverlayButtonClick();
+            await OverlayButtonClick();
         }
-        
+
         [RelayCommand]
         private async Task OverlayButtonClick()
         {
-            if (IsOverlayVisible == true)
+            if (IsOverlayVisible)
             {
                 if (OverlayWindow != null)
                 {
@@ -88,30 +84,29 @@ namespace Orin.ViewModels
             else
             {
                 _mediaService = new();
+                OverlayWindowViewModel overlayDataContext = new();
                 try
                 {
                     _sessionManager = await _mediaService.InitializeAsync();
                     if (_sessionManager == null)
                     {
-                        throw new NotImplementedException();
+                        throw new NotImplementedException("Failed to initialize media service");
                     }
-                    else
-                    {
-                        MediaSessions = await _mediaService.GetSessions(_sessionManager);
-                        OverlayWindowViewModel = new(_mediaService);
-                    }
+
+                    MediaSessions = await _mediaService.GetSessions(_sessionManager);
+                    overlayDataContext = new(_mediaService);
 
                     OverlayWindow = new()
                     {
-                        DataContext = OverlayWindowViewModel
+                        DataContext = overlayDataContext
                     };
-                    
+
                     OverlayWindow.Show();
 
                     OverlayText = _overlayTexts[1];
                     IsOverlayVisible = true;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Debug.WriteLine(ex);
                     IsOverlayVisible = false;
@@ -125,14 +120,27 @@ namespace Orin.ViewModels
         [RelayCommand]
         public async Task RefreshMediaSessions()
         {
-            if (_mediaService != null &&  _sessionManager != null)
+            if (_mediaService != null && _sessionManager != null)
                 MediaSessions = await _mediaService.GetSessions(_sessionManager);
             else
             {
                 throw new NotImplementedException();
             }
         }
-        
+
+        [RelayCommand]
+        private void ToggleSettings()
+        {
+            SettingsViewModel svm = new SettingsViewModel(); 
+            SettingsWindow settingsWindow = new()
+            {
+                DataContext = svm
+            };
+
+            settingsWindow.Show();
+        }
+
+
     }
 
 }

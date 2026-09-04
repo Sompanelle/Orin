@@ -70,10 +70,10 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     void OverlayOpened()
     {
         //Get platform
-        _platformHandle = GetPlatform();
+        _platformHandle = TryGetPlatformHandle() ?? throw new NotImplementedException("Platform handle is null");
         
         //If platform is windows
-        if (_platformHandle != null && _platformHandle.HandleDescriptor == "HWND")
+        if (_platformHandle.HandleDescriptor == "HWND")
         {
             uint currentStyle = (uint)GetWindowLong(_platformHandle.Handle, GWL_EXSTYLE);
 
@@ -96,17 +96,8 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
         Width = message.Width;
     }
     
-    
-    public IPlatformHandle? GetPlatform()
-    {
-        var platform = TryGetPlatformHandle();
-        if (platform != null)
-            return platform;
-        else return null;
-    }
-
  
-    public void ToggleClickThrough()
+    private void ToggleClickThrough()
     {
         uint currentStyle = (uint)GetWindowLong(_platformHandle.Handle, GWL_EXSTYLE);
         uint newStyle;

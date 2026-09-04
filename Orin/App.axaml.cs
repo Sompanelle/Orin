@@ -3,6 +3,8 @@ using System.Security.Authentication.ExtendedProtection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Orin.Services;
 using Orin.ViewModels;
@@ -10,9 +12,10 @@ using Orin.Views;
 
 namespace Orin
 {
-    public partial class App : Application
+    public partial class App : Application, IRecipient<ChangeThemeMessage>
     {
         public IServiceProvider Services { get; set; }
+        public static readonly ThemeVariant GreenTheme = new("Green", ThemeVariant.Dark);
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -21,6 +24,7 @@ namespace Orin
         public App()
         {
             Services = ConfigureServices();
+            WeakReferenceMessenger.Default.Register<ChangeThemeMessage>(this);
         }
 
         private static IServiceProvider ConfigureServices()
@@ -48,5 +52,29 @@ namespace Orin
             base.OnFrameworkInitializationCompleted();
         }
 
+        public void Receive(ChangeThemeMessage message)
+        {
+            if (Current == null)
+            {
+                throw new NotImplementedException("current App was null");
+            }
+            
+            switch (message.Theme)
+            {
+                case "Dark":
+                    Current.RequestedThemeVariant = ThemeVariant.Dark;
+                    break;
+                case "Light":
+                    Current.RequestedThemeVariant = ThemeVariant.Light;
+                    break;
+                case "System":
+                    Current.RequestedThemeVariant = ThemeVariant.Default;
+                    break;
+                case "Green":
+                    Current.RequestedThemeVariant = GreenTheme;
+                    break;
+            }
+            
+        }
     }
 }

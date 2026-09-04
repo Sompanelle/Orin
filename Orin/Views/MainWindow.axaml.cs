@@ -40,20 +40,22 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        var platform = TryGetPlatformHandle();
-
-        if (platform == null)
+        if (!Design.IsDesignMode)
         {
-        }
-        else if (platform.HandleDescriptor == "HWND")
-        {
-            RegisterHotKey(platform.Handle, 0, MOD_CONTROL, _hotkeys[0].Item2);
-            RegisterHotKey(platform.Handle, 1, MOD_CONTROL, _hotkeys[1].Item2);
-            
-            RegisterWindowsHook(platform);
+
+            IPlatformHandle platform =
+                TryGetPlatformHandle() ?? throw new NotImplementedException("Platform handle was null");
+
+            if (platform.HandleDescriptor == "HWND")
+            {
+                RegisterHotKey(platform.Handle, 0, MOD_CONTROL, _hotkeys[0].Item2);
+                RegisterHotKey(platform.Handle, 1, MOD_CONTROL, _hotkeys[1].Item2);
+
+                RegisterWindowsHook(platform);
+            }
+
         }
 
-       
     }
 
     //add windows hook

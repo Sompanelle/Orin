@@ -158,7 +158,7 @@ namespace Orin.ViewModels
                     });
                     
                     //TODO: Rewrite this
-                    double newLength = (Song.Length * 12) + 70;
+                    double newLength = (Song.Length * 16) + 80;
                     if (newLength > _lastLength || newLength < _lastLength)
                     {
                         //16 = font size

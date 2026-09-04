@@ -10,7 +10,23 @@
     </Application.DataTemplates>
   
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme/>
         <StyleInclude Source="/Assets/Styles.axaml"></StyleInclude>
+        
+        
     </Application.Styles>
+             
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="{x:Static local:App.GreenTheme}">
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="DarkOliveGreen" ></SolidColorBrush>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="DarkOliveGreen"></SolidColorBrush>
+                    <SolidColorBrush x:Key=""></SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+             
+             
 </Application>
