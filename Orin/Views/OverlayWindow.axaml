@@ -27,7 +27,7 @@
     </Design.DataContext>
     
     <Window.Styles>
-        <Style Selector="Svg.Playback">
+        <Style Selector="Svg.PlaybackControls">
             <Setter Property="Css" Value="{Binding SvgColorString}"></Setter>
         </Style>
     </Window.Styles>
@@ -35,27 +35,37 @@
         
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
            
-
+            <!--  Playback Stackpanel !-->
             <StackPanel Orientation="Horizontal" Margin="8 4" Spacing="6">
+                
                 <Image Source="{Binding Thumbnail}" Height="40" Name="Thumbnail"/>
         
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Song}" FontSize="16" Name="Song"/>
                     <TextBlock Text="{Binding Artist}" FontSize="10" Name="Artist"/>
                 </StackPanel>
-            
-                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" IsVisible="{Binding DisplayPlaybackControls}">
-                    <Button Background="Transparent" Command="{Binding PrevCommand}" CommandParameter="{Binding CurrentSession}" Classes="Playback">
+                
+                <!-- Playback Controls !-->
+                <StackPanel Classes="PlaybackControlsStack"
+                            IsVisible="{Binding DisplayPlaybackControls}">
+                    
+                    <Button Classes="Playback"
+                            Command="{Binding PrevCommand}"
+                            CommandParameter="{Binding CurrentSession}">
 
-                        <Svg Path="../Assets/Prev.svg" Height="20" Classes="Playback"/>
+                        <Svg Path="../Assets/Prev.svg"  Classes="PlaybackControls"/>
                     </Button>
                     
-                    <Button Background="Transparent" Command="{Binding PausePlayCommand}" CommandParameter="{Binding CurrentSession}"  Classes="Playback">
-                        <Svg Path="{Binding  PlayingStatusImg}" Height="20" Classes="Playback"/>
+                    <Button Classes="Playback"
+                            Command="{Binding PausePlayCommand}"
+                            CommandParameter="{Binding CurrentSession}">
+                        <Svg Path="{Binding  PlayingStatusImg}" Classes="PlaybackControls"/>
                     </Button>
                     
-                    <Button Background="Transparent" Command="{Binding SkipCommand}" CommandParameter="{Binding CurrentSession}" Classes="Playback">
-                        <Svg Path="../Assets/Next.svg" Height="20" Classes="Playback"/>
+                    <Button Classes="Playback"
+                            Command="{Binding SkipCommand}"
+                            CommandParameter="{Binding CurrentSession}">
+                        <Svg Path="../Assets/Next.svg" Classes="PlaybackControls"/>
                     </Button>
                 </StackPanel>
             </StackPanel>

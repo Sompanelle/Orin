@@ -19,11 +19,25 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
+                
                 <ResourceDictionary x:Key="{x:Static local:App.GreenTheme}">
                     <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="DarkOliveGreen" ></SolidColorBrush>
                     <SolidColorBrush x:Key="BackgroundBrush" Color="DarkOliveGreen"></SolidColorBrush>
                     <SolidColorBrush x:Key=""></SolidColorBrush>
                 </ResourceDictionary>
+                
+                
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="Black" ></SolidColorBrush>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="Black"></SolidColorBrush>
+                </ResourceDictionary>
+                
+                                
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="White" ></SolidColorBrush>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="White"></SolidColorBrush>
+                </ResourceDictionary>
+                
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>

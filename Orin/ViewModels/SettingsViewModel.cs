@@ -4,6 +4,8 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Orin.Helpers;
+using Orin.Models;
 using Orin.Services;
 
 namespace Orin.ViewModels;
@@ -25,7 +27,9 @@ partial class SettingsViewModel : ObservableObject
     [ObservableProperty] 
     private bool _isClickThroughDefault;
     
-    public SettingsViewModel()
+    private FileHelper _fileHelper;
+    
+    public SettingsViewModel(Config? Config)
     {
         if (Design.IsDesignMode)
         {
@@ -34,11 +38,27 @@ partial class SettingsViewModel : ObservableObject
                 app.RequestedThemeVariant = ThemeVariant.Dark;
             }
         }
+        _fileHelper = new FileHelper();
+
+        if (Config != null)
+        {
+            SelectedTheme = Config.Theme;
+            IsClickThroughDefault = Config.IsClickThroughDefault;
+        }
     }
 
     [RelayCommand]
     private void SaveSettings()
     {
+        Config _newConf = new()
+        {
+            Theme = SelectedTheme ?? "System",
+            IsClickThroughDefault = IsClickThroughDefault
+        };
+        
+        _fileHelper.WriteConfig(_newConf);
+        
+        WeakReferenceMessenger.Default.Send<ConfigChangedMessage>(new ConfigChangedMessage(_newConf));
         
     }
     

@@ -7,14 +7,23 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Orin.Helpers;
+using Orin.Models;
 using Orin.Services;
 using Orin.Views;
 
 namespace Orin.ViewModels
 {
-    public partial class MainWindowViewModel : ObservableRecipient, IRecipient<ToggleOverlayMessage>
+    public partial class MainWindowViewModel : ObservableRecipient, IRecipient<ToggleOverlayMessage>, IRecipient<ConfigChangedMessage>
     {
-
+        
+        //config variables
+        private FileHelper _fileHelper;
+        
+        [ObservableProperty]
+        private Config? _config;
+        
+        //overlay variables 
         [ObservableProperty] 
         private OverlayWindow? _overlayWindow;
         
@@ -22,29 +31,21 @@ namespace Orin.ViewModels
 
         private List<string> _overlayTexts = new() { "Show Overlay", "Hide Overlay", "Open Overlay Failed" };
 
-        [ObservableProperty] private bool _isOverlayVisible;
-
+        [ObservableProperty] 
+        private bool _isOverlayVisible;
+        
+        
+        //media service variables
         private MediaService? _mediaService;
 
         private GlobalSystemMediaTransportControlsSessionManager? _sessionManager;
 
-        [ObservableProperty] private List<GlobalSystemMediaTransportControlsSession?> _mediaSessions = new();
-
+        [ObservableProperty] 
+        private List<GlobalSystemMediaTransportControlsSession?> _mediaSessions = new();
+        
+        
+        [ObservableProperty]
         private GlobalSystemMediaTransportControlsSession? _selectedSession;
-
-
-        public GlobalSystemMediaTransportControlsSession? SelectedSession
-        {
-            get => _selectedSession;
-            set
-            {
-                _selectedSession = value;
-                if (OverlayWindow.DataContext != null)
-                    OverlayWindow.DataContext = value;
-            }
-
-        }
-
 
         public MainWindowViewModel()
         {
@@ -52,11 +53,11 @@ namespace Orin.ViewModels
             {
                 OverlayText = _overlayTexts[0];
             }
-            else
-            {
-                IsActive = true;
-                Initialize();
-            }
+            _fileHelper =  new FileHelper();
+            _config = _fileHelper.ReadConfig();
+            RegisterMessages();
+            Initialize();
+            
         }
 
         private void Initialize()
@@ -64,6 +65,12 @@ namespace Orin.ViewModels
             OverlayText = _overlayTexts[0];
         }
 
+        private void RegisterMessages()
+        {
+            WeakReferenceMessenger.Default.Register<ToggleOverlayMessage>(this);
+            WeakReferenceMessenger.Default.Register<ConfigChangedMessage>(this);
+        }
+        
         public async void Receive(ToggleOverlayMessage message)
         {
             await OverlayButtonClick();
@@ -84,9 +91,10 @@ namespace Orin.ViewModels
             else
             {
                 _mediaService = new();
-                OverlayWindowViewModel overlayDataContext = new();
                 try
                 {
+                    OverlayWindowViewModel overlayDataContext = new();
+
                     _sessionManager = await _mediaService.InitializeAsync();
                     if (_sessionManager == null)
                     {
@@ -94,7 +102,13 @@ namespace Orin.ViewModels
                     }
 
                     MediaSessions = await _mediaService.GetSessions(_sessionManager);
-                    overlayDataContext = new(_mediaService);
+
+                    foreach(GlobalSystemMediaTransportControlsSession? session in MediaSessions)
+                    {
+                        Debug.WriteLine(session.SourceAppUserModelId);
+                    }
+
+                    overlayDataContext = new(_mediaService, Config);
 
                     OverlayWindow = new()
                     {
@@ -131,7 +145,7 @@ namespace Orin.ViewModels
         [RelayCommand]
         private void ToggleSettings()
         {
-            SettingsViewModel svm = new SettingsViewModel(); 
+            SettingsViewModel svm = new SettingsViewModel(Config); 
             SettingsWindow settingsWindow = new()
             {
                 DataContext = svm
@@ -140,7 +154,16 @@ namespace Orin.ViewModels
             settingsWindow.Show();
         }
 
+        partial void OnSelectedSessionChanged(GlobalSystemMediaTransportControlsSession Session)
+        {
+            WeakReferenceMessenger.Default.Send<SessionChangedMessage>(new SessionChangedMessage(Session));
+        }
 
+
+        public void Receive(ConfigChangedMessage message)
+        {
+            Config = _fileHelper.ReadConfig();
+        }
     }
 
 }

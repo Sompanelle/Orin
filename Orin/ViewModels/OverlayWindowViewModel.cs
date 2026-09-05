@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ExCSS;
+using Orin.Models;
 using Orin.Services;
 
 
@@ -17,7 +18,7 @@ namespace Orin.ViewModels
 {
     //TODO: Window Resizing,, auto pls
     //TODO: Click thru thanks! 
-    public partial class OverlayWindowViewModel : ObservableRecipient, IRecipient<ToggleClickThroughMessage>
+    public partial class OverlayWindowViewModel : ObservableRecipient, IRecipient<ToggleClickThroughMessage>, IRecipient<SessionChangedMessage>
     {
         [ObservableProperty]
         private string? _song;
@@ -55,7 +56,8 @@ namespace Orin.ViewModels
         private GlobalSystemMediaTransportControlsSession? _currentSession;
         
         private GlobalSystemMediaTransportControlsSessionMediaProperties? _mediaProperties;
-        
+        private IRecipient<SessionChangedMessage> _recipientImplementation;
+
 
         public OverlayWindowViewModel()
         {
@@ -74,6 +76,19 @@ namespace Orin.ViewModels
         {
             _mediaService = MediaService;
             _ = InitializeOverlay();
+        }
+
+        public OverlayWindowViewModel(IMediaService MediaService,Config Config)
+        {
+            _mediaService = MediaService;
+            _ = InitializeOverlay();
+            
+            if (Config.IsClickThroughDefault)
+            {
+                WeakReferenceMessenger.Default.Send(new ToggleClickThroughMessage());
+                DisplayPlaybackControls = false;
+            }
+                
         }
         
         private async Task InitializeOverlay()
@@ -300,7 +315,12 @@ namespace Orin.ViewModels
             else
                 return false;
         }
-        
+
+        public void Receive(SessionChangedMessage message)
+        {
+            CurrentSession = message.Session;
+            Task.Run(GetInfo);
+        }
     }
     
 }

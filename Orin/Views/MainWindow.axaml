@@ -9,9 +9,9 @@
         x:CompileBindings="True"
         WindowStartupLocation="CenterScreen"
         Title="MainWindow"
-        Width="300"
+        Width="260"
         Height="240"
-        MinHeight="180"
+        CanResize="False"
         Background="{DynamicResource BackgroundBrush}"
         ExtendClientAreaToDecorationsHint="True">
 

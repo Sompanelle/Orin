@@ -10,9 +10,8 @@
     
     
 
-
-    <Style Selector="Button.Playback /template/ ContentPresenter" > 
-        <Setter Property="Background" Value="Transparent"></Setter>
+    <Style Selector="StackPanel.MainWindowStack">
+        <Setter Property="Spacing" Value="8"/>
     </Style>
     
     <Style Selector="Button.RefreshButton /template/ ContentPresenter" >
@@ -20,9 +19,18 @@
         
     </Style>
     
-    <Style Selector="StackPanel.MainWindowStack">
-        <Setter Property="Spacing" Value="8"/>
+    <Style Selector="Button.Playback /template/ ContentPresenter" > 
+        <Setter Property="Background" Value="Transparent"></Setter>
     </Style>
     
+    <Style Selector="Svg.PlaybackControls">
+        <Setter Property="Width" Value="20"></Setter>
+    </Style>
+    
+    <Style Selector="StackPanel.PlaybackControlsStack">
+        <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Width" Value="80"></Setter>
+    </Style>
     
 </Styles>
