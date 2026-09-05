@@ -176,7 +176,7 @@ namespace Orin.ViewModels
                     });
                     
                     //TODO: Rewrite this
-                    newLength = (DisplayPlaybackControls) ? (Song.Length * 16) + 160 : (Song.Length * 16) + 60;
+                    newLength = (DisplayPlaybackControls) ? (Song.Length * 16) + 180 : (Song.Length * 16) + 60;
                     if (newLength > _lastLength || newLength < _lastLength)
                     {
                         //16 = font size

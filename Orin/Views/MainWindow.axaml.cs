@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     //Modifier Keys
     //ctrl
     private const uint MOD_CONTROL = 0x0002;
+
+    private const uint VK_RMENU = 0x0001;
     
     //Virutal Keys
     private Dictionary<int, (string, uint)> _hotkeys = new() { {0, ("O", 0x4F) }, {1, ("I", 0x49)} };
@@ -48,8 +50,8 @@ public partial class MainWindow : Window
 
             if (platform.HandleDescriptor == "HWND")
             {
-                RegisterHotKey(platform.Handle, 0, MOD_CONTROL, _hotkeys[0].Item2);
-                RegisterHotKey(platform.Handle, 1, MOD_CONTROL, _hotkeys[1].Item2);
+                RegisterHotKey(platform.Handle, 0, VK_RMENU, _hotkeys[0].Item2);
+                RegisterHotKey(platform.Handle, 1, VK_RMENU, _hotkeys[1].Item2);
 
                 RegisterWindowsHook(platform);
             }
