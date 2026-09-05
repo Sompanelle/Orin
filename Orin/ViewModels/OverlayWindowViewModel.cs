@@ -46,6 +46,10 @@ namespace Orin.ViewModels
         private int _lastLength;
 
         private IMediaService _mediaService;
+
+        private double lastLength;
+
+        private double newLength;
         
         private GlobalSystemMediaTransportControlsSessionTimelineProperties? _timelineInfo;
         [ObservableProperty]
@@ -85,7 +89,6 @@ namespace Orin.ViewModels
             
             if (Config.IsClickThroughDefault)
             {
-                WeakReferenceMessenger.Default.Send(new ToggleClickThroughMessage());
                 DisplayPlaybackControls = false;
             }
                 
@@ -173,7 +176,7 @@ namespace Orin.ViewModels
                     });
                     
                     //TODO: Rewrite this
-                    double newLength = (Song.Length * 16) + 80;
+                    newLength = (DisplayPlaybackControls) ? (Song.Length * 16) + 160 : (Song.Length * 16) + 60;
                     if (newLength > _lastLength || newLength < _lastLength)
                     {
                         //16 = font size
@@ -190,10 +193,7 @@ namespace Orin.ViewModels
                 Artist = "";
             }
         }
-        public void Receive(ToggleClickThroughMessage message)
-        {
-            DisplayPlaybackControls = !DisplayPlaybackControls;
-        }
+
 
         private async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetCurrentPlaybackInfo()
         {
@@ -320,6 +320,12 @@ namespace Orin.ViewModels
         {
             CurrentSession = message.Session;
             Task.Run(GetInfo);
+        }
+        
+        public void Receive(ToggleClickThroughMessage message)
+        {
+            DisplayPlaybackControls = !DisplayPlaybackControls;
+            _isClickThrough = !_isClickThrough;
         }
     }
     

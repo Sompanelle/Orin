@@ -53,10 +53,23 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     private const uint SWP_NOSIZE = 0x0001;
     private const uint SWP_NOZORDER = 0x0004;
     private const uint SWP_FRAMECHANGED = 0x0020; //refresh
+
+    private bool _isClickThrough = false;
+
+    private Config? _config;
+    
     
     public OverlayWindow()
     {
         InitializeComponent();
+    }
+
+
+    public OverlayWindow(Config Config)
+    {
+        InitializeComponent();
+        _config = Config;
+        _isClickThrough = _config.IsClickThroughDefault;
     }
     
     protected override void OnOpened(EventArgs e)
@@ -71,16 +84,23 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     {
         //Get platform
         _platformHandle = TryGetPlatformHandle() ?? throw new NotImplementedException("Platform handle is null");
-        
         //If platform is windows
         if (_platformHandle.HandleDescriptor == "HWND")
         {
             uint currentStyle = (uint)GetWindowLong(_platformHandle.Handle, GWL_EXSTYLE);
-
-            uint overlayStyle = currentStyle | WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_LAYERED;
+            uint overlayStyle;
+            
+            if (_isClickThrough)
+                overlayStyle = currentStyle | WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT;
+            else
+                overlayStyle = currentStyle | WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_LAYERED;
+            
             SetWindowLong(_platformHandle.Handle, GWL_EXSTYLE, (IntPtr)overlayStyle);
             SetWindowPos(_platformHandle.Handle, 0, 0, 0,0,  SWP_NOMOVE |SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
         }
+        
+
         
     }
     
@@ -114,6 +134,8 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
         
         SetWindowLong(_platformHandle.Handle, GWL_EXSTYLE, (IntPtr)newStyle);
         SetWindowPos(_platformHandle.Handle, 0,0,0,0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |  SWP_FRAMECHANGED);
+        
+        _isClickThrough = !_isClickThrough;
     }
 
 

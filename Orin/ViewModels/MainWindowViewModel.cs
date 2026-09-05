@@ -110,7 +110,7 @@ namespace Orin.ViewModels
 
                     overlayDataContext = new(_mediaService, Config);
 
-                    OverlayWindow = new()
+                    OverlayWindow = new(Config)
                     {
                         DataContext = overlayDataContext
                     };
