@@ -20,9 +20,15 @@
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 
-                <ResourceDictionary x:Key="{x:Static local:App.GreenTheme}">
+                <ResourceDictionary x:Key="{x:Static local:App.Green}">
                     <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="DarkOliveGreen" ></SolidColorBrush>
                     <SolidColorBrush x:Key="BackgroundBrush" Color="DarkOliveGreen"></SolidColorBrush>
+                    <SolidColorBrush x:Key=""></SolidColorBrush>
+                </ResourceDictionary>
+                
+                <ResourceDictionary x:Key="{x:Static local:App.Pink}">
+                    <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="HotPink" ></SolidColorBrush>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="HotPink"></SolidColorBrush>
                     <SolidColorBrush x:Key=""></SolidColorBrush>
                 </ResourceDictionary>
                 

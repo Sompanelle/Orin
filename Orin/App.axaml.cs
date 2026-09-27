@@ -15,7 +15,8 @@ namespace Orin
     public partial class App : Application, IRecipient<ChangeThemeMessage>
     {
         public IServiceProvider Services { get; set; }
-        public static readonly ThemeVariant GreenTheme = new("Green", ThemeVariant.Dark);
+        public static readonly ThemeVariant Green = new("Green", ThemeVariant.Dark);
+        public static readonly ThemeVariant Pink = new("Pink", ThemeVariant.Dark);
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -71,7 +72,10 @@ namespace Orin
                     Current.RequestedThemeVariant = ThemeVariant.Default;
                     break;
                 case "Green":
-                    Current.RequestedThemeVariant = GreenTheme;
+                    Current.RequestedThemeVariant = Green;
+                    break;
+                case "Pink":
+                    Current.RequestedThemeVariant = Pink;
                     break;
             }
             

@@ -22,7 +22,8 @@ partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMess
         "Dark",
         "Light",
         "System",
-        "Green"
+        "Green",
+        "Pink"
     };
 
     [ObservableProperty] 

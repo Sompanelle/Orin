@@ -68,6 +68,8 @@
                         <Svg Path="../Assets/Next.svg" Classes="PlaybackControls"/>
                     </Button>
                 </StackPanel>
+                
+                <ProgressBar IsVisible="False" Value="" Maximum=""></ProgressBar>
             </StackPanel>
             
         </StackPanel>

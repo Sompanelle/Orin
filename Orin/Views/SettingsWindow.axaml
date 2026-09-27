@@ -37,12 +37,17 @@
                         
                         <StackPanel Grid.Row="0"
                                     >
-                                <TextBlock HorizontalAlignment="Center">Settings</TextBlock>
+                                <TextBlock Classes="Header"
+                                           Text="Settings"/>
                                 
-                                <StackPanel IsVisible="{Binding IsFileSaved}">
+                                <StackPanel IsVisible="{Binding IsFileSaved}"
+                                            Spacing="4">
                                                                         
-                                        <TextBlock TextAlignment="Center" Text="Settings Saved"></TextBlock>
-                                        <TextBlock TextAlignment="Center" Text="Restart app to apply all settings"></TextBlock>
+                                        <TextBlock TextAlignment="Center"
+                                                   Text="Settings Saved"/>
+                                        
+                                        <TextBlock Classes="Warning"
+                                                   Text="Restart app to apply all settings"/>
                                 </StackPanel>
                                 
                                 
@@ -52,7 +57,9 @@
                                 
                                 <CheckBox Content="Overlay Click Through" IsChecked="{Binding IsClickThroughDefault}"></CheckBox>
                                 
-                                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" >
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center" >
                                         <TextBlock VerticalAlignment="Center">Theme: </TextBlock>
                                         <ComboBox PlaceholderText="Theme" ItemsSource="{Binding ThemeList}" SelectedValue="{Binding SelectedTheme}"></ComboBox>
                                 </StackPanel>
