@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,7 +11,7 @@ using Orin.Services;
 
 namespace Orin.ViewModels;
 
-partial class SettingsViewModel : ObservableObject
+partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMessage>
 {
     [ObservableProperty]
     private string? _selectedTheme;
@@ -26,6 +27,9 @@ partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] 
     private bool _isClickThroughDefault;
+
+    [ObservableProperty]
+    private bool _isFileSaved;
     
     private FileHelper _fileHelper;
     
@@ -38,13 +42,15 @@ partial class SettingsViewModel : ObservableObject
                 app.RequestedThemeVariant = ThemeVariant.Dark;
             }
         }
+        
         _fileHelper = new FileHelper();
-
         if (Config != null)
         {
             SelectedTheme = Config.Theme;
             IsClickThroughDefault = Config.IsClickThroughDefault;
         }
+
+        WeakReferenceMessenger.Default.Register(this );
     }
 
     [RelayCommand]
@@ -75,5 +81,11 @@ partial class SettingsViewModel : ObservableObject
         WeakReferenceMessenger.Default.Send<ChangeThemeMessage>(new ChangeThemeMessage(value));
         
     }
-    
+
+    public async void Receive(ConfigChangedMessage message)
+    {
+        IsFileSaved = true;
+        await Task.Delay(3500);
+        IsFileSaved = false;
+    }
 }

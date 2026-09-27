@@ -32,14 +32,24 @@
                         </Grid.ColumnDefinitions>
                         
                         <Grid.RowDefinitions>
-                                Auto, *, Auto
+                                Auto, *, Auto, Auto
                         </Grid.RowDefinitions>
                         
-                        <TextBlock HorizontalAlignment="Center">Settings</TextBlock>
+                        <StackPanel Grid.Row="0"
+                                    >
+                                <TextBlock HorizontalAlignment="Center">Settings</TextBlock>
+                                
+                                <StackPanel IsVisible="{Binding IsFileSaved}">
+                                                                        
+                                        <TextBlock TextAlignment="Center" Text="Settings Saved"></TextBlock>
+                                        <TextBlock TextAlignment="Center" Text="Restart app to apply all settings"></TextBlock>
+                                </StackPanel>
+                                
+                                
+                        </StackPanel>
                         
                         <StackPanel Grid.Row="1">
                                 
-                                <TextBlock HorizontalAlignment="Center">Default Behaviors</TextBlock>
                                 <CheckBox Content="Overlay Click Through" IsChecked="{Binding IsClickThroughDefault}"></CheckBox>
                                 
                                 <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" >
@@ -59,6 +69,8 @@
                                 <Button Command="{Binding CloseSettingsCommand}">Close Window</Button>
                         
                         </StackPanel>
+                        
+                        <TextBlock Grid.Row="3" Classes="SettingsInfo" HorizontalAlignment="Center">Version 0.0.10</TextBlock>
                 </Grid>
         </Border>
         

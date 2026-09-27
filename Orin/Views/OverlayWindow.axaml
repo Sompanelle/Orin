@@ -41,8 +41,8 @@
                 <Image Source="{Binding Thumbnail}" Height="40" Name="Thumbnail"/>
         
                 <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Song}" FontSize="16" Name="Song"/>
-                    <TextBlock Text="{Binding Artist}" FontSize="10" Name="Artist"/>
+                    <TextBlock Text="{Binding Song}" FontWeight="Bold" FontSize="16" Name="Song"/>
+                    <TextBlock Text="{Binding Artist}" FontSize="12" Name="Artist"/>
                 </StackPanel>
                 
                 <!-- Playback Controls !-->

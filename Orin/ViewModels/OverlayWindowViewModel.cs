@@ -159,6 +159,15 @@ namespace Orin.ViewModels
         private async Task GetCurrentMedia()
         {
             _mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync(CurrentSession);
+            
+            if (_mediaProperties == null)
+            {
+                DisplayPlaybackControls = false;
+                Song = "No media playing";
+                Artist = "";
+                //Thumbnail = new Bitmap("avares://");
+            }
+            
             if (_mediaProperties != null)
             {
                 Song = _mediaProperties.Title;
@@ -176,7 +185,7 @@ namespace Orin.ViewModels
                     });
                     
                     //TODO: Rewrite this
-                    newLength = (DisplayPlaybackControls) ? (Song.Length * 16) + 180 : (Song.Length * 16) + 60;
+                    newLength = (DisplayPlaybackControls) ? (Song.Length * 16) + 250 : (Song.Length * 16) + 80;
                     if (newLength > _lastLength || newLength < _lastLength)
                     {
                         //16 = font size
@@ -186,12 +195,7 @@ namespace Orin.ViewModels
                 }
             }
 
-            if (_mediaProperties == null)
-            {
-                DisplayPlaybackControls = false;
-                Song = "No media playing";
-                Artist = "";
-            }
+
         }
 
 
