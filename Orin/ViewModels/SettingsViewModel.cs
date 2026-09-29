@@ -13,8 +13,11 @@ namespace Orin.ViewModels;
 
 partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMessage>
 {
+    
     [ObservableProperty]
-    private string? _selectedTheme;
+    private bool _isFileSaved;
+    
+    private FileHelper? _fileHelper;
 
     [ObservableProperty]
     private List<string> _themeList = new()
@@ -26,15 +29,20 @@ partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMess
         "Pink"
     };
 
-    [ObservableProperty] 
-    private bool _isClickThroughDefault;
-
+    //Config Variables
     [ObservableProperty]
-    private bool _isFileSaved;
+    private string? _selectedTheme;
     
-    private FileHelper _fileHelper;
+    [ObservableProperty] 
+    private bool _clickThroughDefault;
     
-    public SettingsViewModel(Config? Config)
+    [ObservableProperty]
+    private double _overlayBackgroundOpacity = 0.0;
+    
+    [ObservableProperty]
+    private int _overlayBorderRadius = 0;
+
+    public SettingsViewModel()
     {
         if (Design.IsDesignMode)
         {
@@ -43,12 +51,18 @@ partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMess
                 app.RequestedThemeVariant = ThemeVariant.Dark;
             }
         }
+    }
+    
+    public SettingsViewModel(Config? Config)
+    {
         
         _fileHelper = new FileHelper();
         if (Config != null)
         {
             SelectedTheme = Config.Theme;
-            IsClickThroughDefault = Config.IsClickThroughDefault;
+            ClickThroughDefault = Config.IsClickThroughDefault;
+            OverlayBackgroundOpacity = Config.OverlayBackgroundOpacity*100;
+            OverlayBorderRadius = Config.OverlayBorderRadius;
         }
 
         WeakReferenceMessenger.Default.Register(this );
@@ -60,7 +74,9 @@ partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMess
         Config _newConf = new()
         {
             Theme = SelectedTheme ?? "System",
-            IsClickThroughDefault = IsClickThroughDefault
+            IsClickThroughDefault = ClickThroughDefault,
+            OverlayBackgroundOpacity = (float)OverlayBackgroundOpacity/100,
+            OverlayBorderRadius = OverlayBorderRadius
         };
         
         _fileHelper.WriteConfig(_newConf);

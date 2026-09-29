@@ -30,8 +30,17 @@
         <Style Selector="Svg.PlaybackControls">
             <Setter Property="Css" Value="{Binding SvgColorString}"></Setter>
         </Style>
+        
+        <Style Selector="Border.OverlayBorder">
+        </Style>
     </Window.Styles>
     
+    <Border CornerRadius="{Binding BorderRadius}"
+            ClipToBounds="True">
+        
+        <Border.Background>
+            <SolidColorBrush Color="Black" Opacity="{Binding BackgroundOpacity}"></SolidColorBrush>
+        </Border.Background>
         
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
            
@@ -73,5 +82,5 @@
             </StackPanel>
             
         </StackPanel>
-        
+    </Border>
 </Window>

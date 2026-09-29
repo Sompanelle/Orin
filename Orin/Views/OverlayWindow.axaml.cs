@@ -54,8 +54,8 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     private const uint SWP_NOZORDER = 0x0004;
     private const uint SWP_FRAMECHANGED = 0x0020; //refresh
 
+    //Config Variables
     private bool _isClickThrough = false;
-
     private Config? _config;
     
     
@@ -70,6 +70,7 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
         InitializeComponent();
         _config = Config;
         _isClickThrough = _config.IsClickThroughDefault;
+        
     }
     
     protected override void OnOpened(EventArgs e)

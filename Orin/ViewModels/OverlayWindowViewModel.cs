@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.Media.Control;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -34,7 +35,7 @@ namespace Orin.ViewModels
 
         [ObservableProperty]
         private string _svgColorString;
-    
+        
         [ObservableProperty] 
         private bool _isPlaying;
 
@@ -55,13 +56,18 @@ namespace Orin.ViewModels
         [ObservableProperty]
         
         private GlobalSystemMediaTransportControlsSessionPlaybackInfo? _playbackInfo;
-        [ObservableProperty]
         
+        [ObservableProperty]
         private GlobalSystemMediaTransportControlsSession? _currentSession;
         
         private GlobalSystemMediaTransportControlsSessionMediaProperties? _mediaProperties;
-        private IRecipient<SessionChangedMessage> _recipientImplementation;
-
+        
+        //Config Variables
+        [ObservableProperty]
+        private float _backgroundOpacity = 0;
+        
+        [ObservableProperty]
+        private CornerRadius _borderRadius = new CornerRadius(0);
 
         public OverlayWindowViewModel()
         {
@@ -91,7 +97,13 @@ namespace Orin.ViewModels
             {
                 DisplayPlaybackControls = false;
             }
-                
+            
+            if (Config.OverlayBackgroundOpacity > 0)
+                BackgroundOpacity = Config.OverlayBackgroundOpacity;
+            
+            if (Config.OverlayBorderRadius > 0)
+                BorderRadius =  new CornerRadius(Config.OverlayBorderRadius);
+            
         }
         
         private async Task InitializeOverlay()

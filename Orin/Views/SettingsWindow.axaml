@@ -10,7 +10,7 @@
         WindowStartupLocation="CenterOwner"
         Title="Settings"
         Width="300"
-        Height="300"
+        Height="400"
         Background="Transparent"
         WindowDecorations="None"
         >
@@ -55,17 +55,68 @@
                         
                         <StackPanel Grid.Row="1">
                                 
-                                <CheckBox Content="Overlay Click Through" IsChecked="{Binding IsClickThroughDefault}"></CheckBox>
+                                
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center"
+                                            Margin="0 8">
+                                        
+                                        <TextBlock VerticalAlignment="Center"
+
+                                                   >Theme: </TextBlock>
+                                        
+                                        <ComboBox PlaceholderText="Theme"
+                                                  ItemsSource="{Binding ThemeList}"
+                                                  SelectedValue="{Binding SelectedTheme}"></ComboBox>
+                                </StackPanel>
+                                
+                                <TextBlock VerticalAlignment="Center"
+                                           Margin="0 12 0 2"
+                                           FontWeight="Bold"
+                                           TextAlignment="Left">Overlay Settings</TextBlock>
+                                
+                                <CheckBox Content="Overlay Click Through" IsChecked="{Binding ClickThroughDefault}"></CheckBox>
                                 
                                 <StackPanel Orientation="Horizontal"
                                             Spacing="4"
                                             VerticalAlignment="Center" >
-                                        <TextBlock VerticalAlignment="Center">Theme: </TextBlock>
-                                        <ComboBox PlaceholderText="Theme" ItemsSource="{Binding ThemeList}" SelectedValue="{Binding SelectedTheme}"></ComboBox>
+                                        
+                                        <TextBlock VerticalAlignment="Center">Bg Opacity: </TextBlock>
+                                        
+                                        <Slider Orientation="Horizontal"
+                                                Value="{Binding OverlayBackgroundOpacity}"
+                                                Minimum="0"
+                                                Maximum="100"
+                                                SmallChange="1"
+                                                LargeChange="10"
+                                                Width="100">
+                                                
+                                        </Slider>
+                                        
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding OverlayBackgroundOpacity, StringFormat={}{0:F1}}"></TextBlock>
                                 </StackPanel>
-
+                                
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center" >
+                                        
+                                        <TextBlock VerticalAlignment="Center">Bg Radius: </TextBlock>
+                                        
+                                        <Slider Orientation="Horizontal"
+                                                Value="{Binding OverlayBorderRadius}"
+                                                Minimum="0"
+                                                Maximum="100"
+                                                SmallChange="1"
+                                                LargeChange="10"
+                                                Width="50">
+                                                
+                                        </Slider>
+                                        
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding OverlayBorderRadius, StringFormat={}{0:F0}}"></TextBlock>
+                                </StackPanel>
+                                
                         </StackPanel>
-                
+                        
                         <StackPanel Grid.Row="2" 
                                     Orientation="Horizontal"
                                     Spacing="10"
