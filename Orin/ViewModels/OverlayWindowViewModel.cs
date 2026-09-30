@@ -196,8 +196,9 @@ namespace Orin.ViewModels
                         Thumbnail = bitmap;
                     });
                     
-                    //TODO: Rewrite this
-                    newLength = (DisplayPlaybackControls) ? (Song.Length * 16) + 250 : (Song.Length * 16) + 80;
+                    int charCount = (Artist.Length > Song.Length) ? Artist.Length : Song.Length;
+                    
+                    newLength = (DisplayPlaybackControls) ? (charCount * 9) + 180 : (charCount * 9) + 70;
                     if (newLength > _lastLength || newLength < _lastLength)
                     {
                         //16 = font size
