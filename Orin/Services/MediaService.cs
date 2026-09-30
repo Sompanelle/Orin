@@ -15,7 +15,7 @@ public interface IMediaService
     Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
     Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
     Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
-    Task<GlobalSystemMediaTransportControlsSession?> UpdateCurrentSession(GlobalSystemMediaTransportControlsSession CurrentSession);
+    Task<GlobalSystemMediaTransportControlsSession?> UpdateCurrentSession();
 }
 
 
@@ -30,8 +30,7 @@ public class MediaService : IMediaService
         return _playbackManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
     }
 
-    public async Task<List<GlobalSystemMediaTransportControlsSession?>> GetSessions(
-        GlobalSystemMediaTransportControlsSessionManager PlaybackManager)
+    public async Task<List<GlobalSystemMediaTransportControlsSession?>> GetSessions(GlobalSystemMediaTransportControlsSessionManager PlaybackManager)
     {
         if (_playbackManager != null)
         {
@@ -44,13 +43,13 @@ public class MediaService : IMediaService
         else  return null;
     }
 
-    public async Task<GlobalSystemMediaTransportControlsSession?>  UpdateCurrentSession(GlobalSystemMediaTransportControlsSession CurrentSession)
+    public async Task<GlobalSystemMediaTransportControlsSession?>  UpdateCurrentSession()
     {
         if (_playbackManager != null)
         {
-            CurrentSession = _playbackManager.GetCurrentSession();
-            if(CurrentSession != null)
-                return CurrentSession;
+            GlobalSystemMediaTransportControlsSession currentSession = _playbackManager.GetCurrentSession();
+            if(currentSession != null)
+                return currentSession;
             else 
                 return null;
         }

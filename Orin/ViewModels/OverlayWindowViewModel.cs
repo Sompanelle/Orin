@@ -139,7 +139,7 @@ namespace Orin.ViewModels
         
         private async Task GetInfo()
         {
-            if (IsSessionValid(CurrentSession) == false)
+            if (!IsSessionValid(CurrentSession))
             {
                 await UpdateCurrentSession();
                 await GetCurrentMedia();
@@ -153,34 +153,40 @@ namespace Orin.ViewModels
                     await UpdatePlaybackStatus(PlaybackInfo);
                 }
             }
-            
         }
         
         private async Task UpdateCurrentSession()
         {
-            CurrentSession = await _mediaService.UpdateCurrentSession(CurrentSession);
+            CurrentSession = await _mediaService.UpdateCurrentSession();
         }
         
-        [RelayCommand]
-        private void ToggleWindow(Window Window)
-        {
-            Window.IsVisible = !Window.IsVisible;
-            Window.ShowInTaskbar = !Window.ShowInTaskbar;
-        }
         
         private async Task GetCurrentMedia()
         {
-            _mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync(CurrentSession);
+            GlobalSystemMediaTransportControlsSessionMediaProperties? mediaProperties = null;
+            try
+            {
+                if (CurrentSession != null)
+                    mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync(CurrentSession);
+
+            }
+            catch
+            {
+                CurrentSession = null;
+                mediaProperties = null;
+            }
+            
+            _mediaProperties = mediaProperties;
             
             if (_mediaProperties == null)
             {
                 DisplayPlaybackControls = false;
                 Song = "No media playing";
                 Artist = "";
+                CalculateWindowSize(Song.Length, false);
                 //Thumbnail = new Bitmap("avares://");
             }
-            
-            if (_mediaProperties != null)
+            else
             {
                 Song = _mediaProperties.Title;
                 Artist = _mediaProperties.Artist;
@@ -195,20 +201,28 @@ namespace Orin.ViewModels
                     {
                         Thumbnail = bitmap;
                     });
-                    
+
                     int charCount = (Artist.Length > Song.Length) ? Artist.Length : Song.Length;
                     
-                    newLength = (DisplayPlaybackControls) ? (charCount * 9) + 180 : (charCount * 9) + 70;
-                    if (newLength > _lastLength || newLength < _lastLength)
-                    {
-                        //16 = font size
-                        _lastLength = (int)newLength;
-                        WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
-                    }
+                    CalculateWindowSize(charCount, true);
                 }
             }
 
 
+        }
+
+        public void CalculateWindowSize(int CharCount, bool MediaPlaying)
+        {
+            newLength = (DisplayPlaybackControls) ? (CharCount * 9) + 180 : (CharCount * 9) + 70;
+            
+            if (!MediaPlaying)
+                newLength -= 50;
+            
+            if (!newLength.Equals(lastLength))
+            {
+                _lastLength = (int)newLength;
+                WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
+            }
         }
 
 
@@ -272,7 +286,22 @@ namespace Orin.ViewModels
                 }
             );
         }
+        
+        private bool IsSessionValid(GlobalSystemMediaTransportControlsSession? Session)
+        {
+            if (Session != null && Session.GetPlaybackInfo() != null)
+                return true;
+            else
+                return false;
+        }
 
+        [RelayCommand]
+        private void ToggleWindow(Window Window)
+        {
+            Window.IsVisible = !Window.IsVisible;
+            Window.ShowInTaskbar = !Window.ShowInTaskbar;
+        }
+        
         [RelayCommand]
         async Task PausePlay(GlobalSystemMediaTransportControlsSession Session)
         {
@@ -324,14 +353,7 @@ namespace Orin.ViewModels
                 await GetCurrentMedia();
             }
         }
-
-        private bool IsSessionValid(GlobalSystemMediaTransportControlsSession? Session)
-        {
-            if (Session != null && Session.GetPlaybackInfo() != null)
-                return true;
-            else
-                return false;
-        }
+        
 
         public void Receive(SessionChangedMessage message)
         {
