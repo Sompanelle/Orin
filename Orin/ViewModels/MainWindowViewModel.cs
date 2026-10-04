@@ -101,7 +101,7 @@ namespace Orin.ViewModels
                         throw new NotImplementedException("Failed to initialize media service");
                     }
 
-                    MediaSessions = await _mediaService.GetSessions(_sessionManager);
+                    MediaSessions = _mediaService.GetSessions(_sessionManager);
 
                     foreach(GlobalSystemMediaTransportControlsSession? session in MediaSessions)
                     {
@@ -135,7 +135,7 @@ namespace Orin.ViewModels
         public async Task RefreshMediaSessions()
         {
             if (_mediaService != null && _sessionManager != null)
-                MediaSessions = await _mediaService.GetSessions(_sessionManager);
+                MediaSessions = _mediaService.GetSessions(_sessionManager);
             else
             {
                 throw new NotImplementedException();

@@ -12,7 +12,7 @@
         TransparencyLevelHint="Transparent"
         WindowDecorations="None"
         WindowStartupLocation="Manual"
-        Height="50"
+        Height="60"
         Width="165"
         Position="0,0"
         Topmost="True"

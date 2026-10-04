@@ -10,7 +10,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using ExCSS;
 using Orin.Models;
 using Orin.Services;
 
@@ -21,26 +20,28 @@ namespace Orin.ViewModels
     //TODO: Click thru thanks! 
     public partial class OverlayWindowViewModel : ObservableRecipient, IRecipient<ToggleClickThroughMessage>, IRecipient<SessionChangedMessage>
     {
+        
+        //media variables
         [ObservableProperty]
         private string? _song;
+        
         [ObservableProperty] 
         private string? _artist;
+        
         [ObservableProperty] 
         private Bitmap? _thumbnail;
+        
         [ObservableProperty]
         private string? _playingStatusImg;
-
+        
         [ObservableProperty]
-        private string _svgColor = "white";
-
-        [ObservableProperty]
-        private string _svgColorString;
+        private string _svgColorString = $".playback {{ fill: white;}}";
         
         [ObservableProperty] 
         private bool _isPlaying;
 
         [ObservableProperty] 
-        private bool _displayPlaybackControls;
+        private bool _displayPlaybackControls = true;
 
         private bool _isClickThrough;
 
@@ -48,13 +49,11 @@ namespace Orin.ViewModels
 
         private IMediaService _mediaService;
 
-        private double lastLength;
-
-        private double newLength;
+        private double _newLength;
         
         private GlobalSystemMediaTransportControlsSessionTimelineProperties? _timelineInfo;
-        [ObservableProperty]
         
+        [ObservableProperty]
         private GlobalSystemMediaTransportControlsSessionPlaybackInfo? _playbackInfo;
         
         [ObservableProperty]
@@ -64,10 +63,10 @@ namespace Orin.ViewModels
         
         //Config Variables
         [ObservableProperty]
-        private float _backgroundOpacity = 0;
+        private float _backgroundOpacity;
         
         [ObservableProperty]
-        private CornerRadius _borderRadius = new CornerRadius(0);
+        private CornerRadius _borderRadius;
 
         public OverlayWindowViewModel()
         {
@@ -93,26 +92,13 @@ namespace Orin.ViewModels
             _mediaService = MediaService;
             _ = InitializeOverlay();
             
-            if (Config.IsClickThroughDefault)
-            {
-                DisplayPlaybackControls = false;
-            }
-            
-            if (Config.OverlayBackgroundOpacity > 0)
-                BackgroundOpacity = Config.OverlayBackgroundOpacity;
-            
-            if (Config.OverlayBorderRadius > 0)
-                BorderRadius =  new CornerRadius(Config.OverlayBorderRadius);
-            
+            ReadConfig(Config);
         }
         
         private async Task InitializeOverlay()
         {
+            //observable recipient requirement
             IsActive = true;
-            
-            DisplayPlaybackControls = true;
-            SvgColorString = $".playback {{ fill: {SvgColor};}}";
-            
             
             await GetInfo();
             await AppLoop();
@@ -123,7 +109,6 @@ namespace Orin.ViewModels
             bool running = true;
             while (running)
             {
-                
                 await GetInfo();
                 if (IsPlaying)
                 {
@@ -141,13 +126,13 @@ namespace Orin.ViewModels
         {
             if (!IsSessionValid(CurrentSession))
             {
-                await UpdateCurrentSession();
+                UpdateCurrentSession();
                 await GetCurrentMedia();
             }
             else
             {
                 await GetCurrentMedia();
-                PlaybackInfo = await GetCurrentPlaybackInfo();
+                PlaybackInfo = _mediaService.GetPlaybackInfo(CurrentSession);
                 if (PlaybackInfo != null)
                 {
                     await UpdatePlaybackStatus(PlaybackInfo);
@@ -155,9 +140,9 @@ namespace Orin.ViewModels
             }
         }
         
-        private async Task UpdateCurrentSession()
+        private void UpdateCurrentSession()
         {
-            CurrentSession = await _mediaService.UpdateCurrentSession();
+            CurrentSession = _mediaService.UpdateCurrentSession();
         }
         
         
@@ -211,39 +196,19 @@ namespace Orin.ViewModels
 
         }
 
-        public void CalculateWindowSize(int CharCount, bool MediaPlaying)
+        void CalculateWindowSize(int CharCount, bool MediaPlaying)
         {
-            newLength = (DisplayPlaybackControls) ? (CharCount * 9) + 180 : (CharCount * 9) + 70;
+            
+            
+            _newLength = (DisplayPlaybackControls) ? (CharCount * 9) + 180 : (CharCount * 9) + 70;
             
             if (!MediaPlaying)
-                newLength -= 50;
+                _newLength -= 50;
             
-            if (!newLength.Equals(lastLength))
+            if (!_newLength.Equals(_lastLength))
             {
-                _lastLength = (int)newLength;
+                _lastLength = (int)_newLength;
                 WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
-            }
-        }
-
-
-        private async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetCurrentPlaybackInfo()
-        {
-            if (CurrentSession != null)
-            {
-                var pbInfo = await _mediaService.GetPlaybackInfoAsync(CurrentSession);
-                if (pbInfo != null)
-                {
-                    if (pbInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-                        IsPlaying = true;
-                    else if (pbInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused)
-                        IsPlaying = false;
-                    return pbInfo;
-                }
-                else return null;
-            }
-            else
-            {
-                return null;
             }
         }
 
@@ -260,18 +225,20 @@ namespace Orin.ViewModels
         // }
         
         //Update Playback Icon Function
-        async Task UpdatePlaybackStatus(GlobalSystemMediaTransportControlsSessionPlaybackInfo PlaybackInfo)
+        async Task UpdatePlaybackStatus(GlobalSystemMediaTransportControlsSessionPlaybackInfo CurrentPlaybackInfo)
         {
              await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     try
                     {
-                        switch (PlaybackInfo.PlaybackStatus)
+                        switch (CurrentPlaybackInfo.PlaybackStatus)
                         {
                             case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing:
+                                IsPlaying = true;
                                 PlayingStatusImg = "avares://Orin/Assets/Pause.svg";
                                 break;
                             case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
+                                IsPlaying = false;
                                 PlayingStatusImg = "avares://Orin/Assets/Play.svg";
                                 break;
                         }
@@ -285,6 +252,21 @@ namespace Orin.ViewModels
 
                 }
             );
+        }
+
+        private void ReadConfig(Config Config)
+        {
+            if (Config.IsClickThroughDefault)
+            {
+                _isClickThrough = true;
+                DisplayPlaybackControls = false;
+            }
+            
+            if (Config.OverlayBackgroundOpacity > 0)
+                BackgroundOpacity = Config.OverlayBackgroundOpacity;
+            
+            if (Config.OverlayBorderRadius > 0)
+                BorderRadius =  new CornerRadius(Config.OverlayBorderRadius);
         }
         
         private bool IsSessionValid(GlobalSystemMediaTransportControlsSession? Session)
@@ -307,7 +289,7 @@ namespace Orin.ViewModels
         {
             if (IsSessionValid(Session))
             {
-                PlaybackInfo = await _mediaService.GetPlaybackInfoAsync(Session);
+                PlaybackInfo = _mediaService.GetPlaybackInfo(Session);
 
                 if (PlaybackInfo != null)
                 {
@@ -324,7 +306,7 @@ namespace Orin.ViewModels
                 }
 
                 await Task.Delay(200);
-                PlaybackInfo = await GetCurrentPlaybackInfo();
+                PlaybackInfo = _mediaService.GetPlaybackInfo(Session);
                 if (PlaybackInfo != null)
                     await UpdatePlaybackStatus(PlaybackInfo);
             }
@@ -355,16 +337,20 @@ namespace Orin.ViewModels
         }
         
 
-        public void Receive(SessionChangedMessage message)
+        public void Receive(SessionChangedMessage Message)
         {
-            CurrentSession = message.Session;
+            CurrentSession = Message.Session;
             Task.Run(GetInfo);
         }
         
-        public void Receive(ToggleClickThroughMessage message)
+        public async void Receive(ToggleClickThroughMessage Message)
         {
-            DisplayPlaybackControls = !DisplayPlaybackControls;
             _isClickThrough = !_isClickThrough;
+            
+            DisplayPlaybackControls = (!_isClickThrough);
+
+            await GetCurrentMedia();
+
         }
     }
     

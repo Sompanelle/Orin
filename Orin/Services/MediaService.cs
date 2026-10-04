@@ -12,10 +12,10 @@ namespace Orin.Services;
 public interface IMediaService
 {
     Task<GlobalSystemMediaTransportControlsSessionManager?> InitializeAsync();
-    Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
+    GlobalSystemMediaTransportControlsSessionTimelineProperties? GetTimeLineInfo(GlobalSystemMediaTransportControlsSession CurrentSession);
     Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
-    Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession);
-    Task<GlobalSystemMediaTransportControlsSession?> UpdateCurrentSession();
+    GlobalSystemMediaTransportControlsSessionPlaybackInfo? GetPlaybackInfo(GlobalSystemMediaTransportControlsSession CurrentSession);
+    GlobalSystemMediaTransportControlsSession? UpdateCurrentSession();
 }
 
 
@@ -30,36 +30,31 @@ public class MediaService : IMediaService
         return _playbackManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
     }
 
-    public async Task<List<GlobalSystemMediaTransportControlsSession?>> GetSessions(GlobalSystemMediaTransportControlsSessionManager PlaybackManager)
+    public List<GlobalSystemMediaTransportControlsSession?> GetSessions(GlobalSystemMediaTransportControlsSessionManager PlaybackManager)
     {
         if (_playbackManager != null)
         {
             var sessions = PlaybackManager.GetSessions();
             if (sessions != null)
                 return sessions.ToList();
-            
-            else return null;
         }
-        else  return null;
+        return new List<GlobalSystemMediaTransportControlsSession?>();
     }
 
-    public async Task<GlobalSystemMediaTransportControlsSession?>  UpdateCurrentSession()
+    public GlobalSystemMediaTransportControlsSession? UpdateCurrentSession()
     {
         if (_playbackManager != null)
         {
             GlobalSystemMediaTransportControlsSession currentSession = _playbackManager.GetCurrentSession();
             if(currentSession != null)
                 return currentSession;
-            else 
-                return null;
         }
-        else
-        {
-            return null;
-        }
+
+        return null;
+        
     }
         
-    public async Task<GlobalSystemMediaTransportControlsSessionTimelineProperties?> GetTimeLineInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession)
+    public GlobalSystemMediaTransportControlsSessionTimelineProperties? GetTimeLineInfo(GlobalSystemMediaTransportControlsSession CurrentSession)
     {
         if (_playbackManager != null)
         {
@@ -68,11 +63,11 @@ public class MediaService : IMediaService
             {
                 return timelineInfo;
             }
-            else return null;
-        }else return null;
+        } 
+        return null;
     }
     
-    public async Task<GlobalSystemMediaTransportControlsSessionPlaybackInfo?> GetPlaybackInfoAsync(GlobalSystemMediaTransportControlsSession CurrentSession)
+    public GlobalSystemMediaTransportControlsSessionPlaybackInfo? GetPlaybackInfo(GlobalSystemMediaTransportControlsSession CurrentSession)
     {
         if (_playbackManager != null)
         {
@@ -81,18 +76,13 @@ public class MediaService : IMediaService
             {
                 return playbackInfo;
             }
-            else
-            {
-                return null;
-            }
         }
-        else 
-        {
-            return null;
-        }
+
+        return null;
+        
     }
     
-    public async Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession CurrentSession)
+    public async Task<GlobalSystemMediaTransportControlsSessionMediaProperties?> GetCurrentMediaPropertiesAsync(GlobalSystemMediaTransportControlsSession? CurrentSession)
     {
         if (CurrentSession != null)
         {
@@ -102,14 +92,8 @@ public class MediaService : IMediaService
             {
                 return mediaProperties;
             }
-            else
-            {
-                return null;
-            }
         }
-        else
-        {
-            return null;
-        }
+
+        return null;
     }
 }

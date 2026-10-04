@@ -115,6 +115,7 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
     public void Receive(ResizeWindowMessage message)
     {
         Width = message.Width;
+        Height = 60;
     }
     
  
