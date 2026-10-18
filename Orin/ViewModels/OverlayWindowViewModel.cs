@@ -23,7 +23,7 @@ namespace Orin.ViewModels
         
         //media variables
         [ObservableProperty]
-        private string? _song;
+        private string _song;
         
         [ObservableProperty] 
         private string? _artist;
@@ -41,15 +41,13 @@ namespace Orin.ViewModels
         private bool _isPlaying;
 
         [ObservableProperty] 
-        private bool _displayPlaybackControls = true;
+        private bool _displayPlaybackControls;
 
         private bool _isClickThrough;
 
         private int _lastLength;
 
         private IMediaService _mediaService;
-
-        private double _newLength;
         
         private GlobalSystemMediaTransportControlsSessionTimelineProperties? _timelineInfo;
         
@@ -90,9 +88,8 @@ namespace Orin.ViewModels
         public OverlayWindowViewModel(IMediaService MediaService,Config Config)
         {
             _mediaService = MediaService;
-            _ = InitializeOverlay();
-            
             ReadConfig(Config);
+            _ = InitializeOverlay();
         }
         
         private async Task InitializeOverlay()
@@ -100,7 +97,6 @@ namespace Orin.ViewModels
             //observable recipient requirement
             IsActive = true;
             
-            await GetInfo();
             await AppLoop();
         }
         
@@ -165,10 +161,10 @@ namespace Orin.ViewModels
             
             if (_mediaProperties == null)
             {
-                DisplayPlaybackControls = false;
                 Song = "No media playing";
                 Artist = "";
-                CalculateWindowSize(Song.Length, false);
+                Thumbnail = null;
+                CalculateWindowSize(Song.Length, DisplayPlaybackControls);
                 //Thumbnail = new Bitmap("avares://");
             }
             else
@@ -189,25 +185,25 @@ namespace Orin.ViewModels
 
                     int charCount = (Artist.Length > Song.Length) ? Artist.Length : Song.Length;
                     
-                    CalculateWindowSize(charCount, true);
+                    CalculateWindowSize(charCount, DisplayPlaybackControls);
                 }
             }
 
 
         }
 
-        void CalculateWindowSize(int CharCount, bool MediaPlaying)
+        void CalculateWindowSize(int CharCount, bool PlaybackControls)
         {
-            
-            
-            _newLength = (DisplayPlaybackControls) ? (CharCount * 9) + 180 : (CharCount * 9) + 70;
-            
-            if (!MediaPlaying)
-                _newLength -= 50;
-            
-            if (!_newLength.Equals(_lastLength))
+            double newLength = (CharCount * 9) + 70;
+
+            if (PlaybackControls)
             {
-                _lastLength = (int)_newLength;
+                newLength += 90;
+            }
+            
+            if (!newLength.Equals(_lastLength))
+            {
+                _lastLength = (int)newLength;
                 WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
             }
         }
@@ -238,6 +234,10 @@ namespace Orin.ViewModels
                                 PlayingStatusImg = "avares://Orin/Assets/Pause.svg";
                                 break;
                             case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Paused:
+                                IsPlaying = false;
+                                PlayingStatusImg = "avares://Orin/Assets/Play.svg";
+                                break;
+                            case GlobalSystemMediaTransportControlsSessionPlaybackStatus.Stopped:
                                 IsPlaying = false;
                                 PlayingStatusImg = "avares://Orin/Assets/Play.svg";
                                 break;
@@ -337,19 +337,33 @@ namespace Orin.ViewModels
         }
         
 
-        public void Receive(SessionChangedMessage Message)
+        public async void Receive(SessionChangedMessage Message)
         {
             CurrentSession = Message.Session;
-            Task.Run(GetInfo);
+            Task.Run(GetInfo).Wait();
         }
         
-        public async void Receive(ToggleClickThroughMessage Message)
+        public void Receive(ToggleClickThroughMessage Message)
         {
             _isClickThrough = !_isClickThrough;
-            
-            DisplayPlaybackControls = (!_isClickThrough);
 
-            await GetCurrentMedia();
+            if (_isClickThrough)
+            {
+                DisplayPlaybackControls = false;
+            }
+            else
+            {
+                DisplayPlaybackControls = true;
+            }
+
+            int charCount = Song.Length;
+            
+            if (Artist != null)
+            {
+                charCount = (Artist.Length > Song.Length) ? Artist.Length : Song.Length;
+            }
+            
+            CalculateWindowSize(charCount, DisplayPlaybackControls);
 
         }
     }

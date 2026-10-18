@@ -128,7 +128,7 @@
                         
                         </StackPanel>
                         
-                        <TextBlock Grid.Row="3" Classes="SettingsInfo" HorizontalAlignment="Center">Version 0.0.10</TextBlock>
+                        <TextBlock Grid.Row="3" Classes="UpdateInfo" HorizontalAlignment="Center">Version 0.0.14</TextBlock>
                 </Grid>
         </Border>
         

@@ -97,7 +97,7 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
                 overlayStyle = currentStyle | WS_EX_NOACTIVATE | WS_EX_TOPMOST | WS_EX_LAYERED;
             
             SetWindowLong(_platformHandle.Handle, GWL_EXSTYLE, (IntPtr)overlayStyle);
-            SetWindowPos(_platformHandle.Handle, 0, 0, 0,0,  SWP_NOMOVE |SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+            SetWindowPos(_platformHandle.Handle, 0, 0, (int)Width,(int)Height,  SWP_NOMOVE |SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 
         }
         
@@ -135,7 +135,7 @@ public partial class OverlayWindow : Window, IRecipient<ToggleClickThroughMessag
         }
         
         SetWindowLong(_platformHandle.Handle, GWL_EXSTYLE, (IntPtr)newStyle);
-        SetWindowPos(_platformHandle.Handle, 0,0,0,0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |  SWP_FRAMECHANGED);
+        SetWindowPos(_platformHandle.Handle, 0,0,(int)Width,(int)Height, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |  SWP_FRAMECHANGED);
         
         _isClickThrough = !_isClickThrough;
     }

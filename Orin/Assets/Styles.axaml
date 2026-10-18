@@ -45,4 +45,8 @@
         <Setter Property="TextAlignment" Value="Center"/>
     </Style>
     
+    <Style Selector="TextBlock.UpdateInfo">
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+    
 </Styles>

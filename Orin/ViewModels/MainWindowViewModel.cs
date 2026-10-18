@@ -107,14 +107,24 @@ namespace Orin.ViewModels
                     {
                         Debug.WriteLine(session.SourceAppUserModelId);
                     }
-
-                    overlayDataContext = new(_mediaService, Config);
-
-                    OverlayWindow = new(Config)
+                    
+                    if (Config != null)
                     {
-                        DataContext = overlayDataContext
-                    };
-
+                        overlayDataContext = new(_mediaService, Config);
+                        OverlayWindow = new(Config)
+                        {
+                            DataContext = overlayDataContext
+                        };
+                    }
+                    else
+                    {
+                        overlayDataContext = new(_mediaService);
+                        OverlayWindow = new OverlayWindow()
+                        {
+                            DataContext = overlayDataContext
+                        };
+                    }
+                    
                     OverlayWindow.Show();
 
                     OverlayText = _overlayTexts[1];

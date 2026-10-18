@@ -71,7 +71,7 @@ partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMess
     [RelayCommand]
     private void SaveSettings()
     {
-        Config _newConf = new()
+        Config newConf = new()
         {
             Theme = SelectedTheme ?? "System",
             IsClickThroughDefault = ClickThroughDefault,
@@ -79,9 +79,9 @@ partial class SettingsViewModel : ObservableObject, IRecipient<ConfigChangedMess
             OverlayBorderRadius = OverlayBorderRadius
         };
         
-        _fileHelper.WriteConfig(_newConf);
+        _fileHelper.WriteConfig(newConf);
         
-        WeakReferenceMessenger.Default.Send<ConfigChangedMessage>(new ConfigChangedMessage(_newConf));
+        WeakReferenceMessenger.Default.Send<ConfigChangedMessage>(new ConfigChangedMessage(newConf));
         
     }
     

@@ -12,9 +12,11 @@
         TransparencyLevelHint="Transparent"
         WindowDecorations="None"
         WindowStartupLocation="Manual"
+        Position="0,0"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Top"
         Height="60"
         Width="165"
-        Position="0,0"
         Topmost="True"
         >
     
@@ -45,17 +47,26 @@
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
            
             <!--  Playback Stackpanel !-->
-            <StackPanel Orientation="Horizontal" Margin="8 4" Spacing="6">
+            <Grid Margin="8 4">
                 
-                <Image Source="{Binding Thumbnail}" Height="40" Name="Thumbnail"/>
+                <Grid.ColumnDefinitions>
+                    Auto,4,Auto,*,Auto
+                </Grid.ColumnDefinitions>
+                
+                <Image Grid.Column="0"
+                       Source="{Binding Thumbnail}"
+                       Height="40"
+                       Name="Thumbnail"/>
         
-                <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2"
+                            Orientation="Vertical"
+                            VerticalAlignment="Center">
                     <TextBlock Text="{Binding Song}" FontWeight="Bold" FontSize="16" Name="Song"/>
                     <TextBlock Text="{Binding Artist}" FontSize="12" Name="Artist"/>
                 </StackPanel>
                 
                 <!-- Playback Controls !-->
-                <StackPanel Classes="PlaybackControlsStack"
+                <StackPanel Grid.Column="4" Classes="PlaybackControlsStack"
                             IsVisible="{Binding DisplayPlaybackControls}">
                     
                     <Button Classes="Playback"
@@ -79,7 +90,7 @@
                 </StackPanel>
                 
                 <ProgressBar IsVisible="False" Value="" Maximum=""></ProgressBar>
-            </StackPanel>
+            </Grid>
             
         </StackPanel>
     </Border>
