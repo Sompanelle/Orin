@@ -93,7 +93,7 @@ namespace Orin.ViewModels
                 _mediaService = new();
                 try
                 {
-                    OverlayWindowViewModel overlayDataContext = new();
+                    OverlayWindowViewModel overlayDataContext;
 
                     _sessionManager = await _mediaService.InitializeAsync();
                     if (_sessionManager == null)
@@ -155,10 +155,10 @@ namespace Orin.ViewModels
         [RelayCommand]
         private void ToggleSettings()
         {
-            SettingsViewModel svm = new SettingsViewModel(Config); 
+            SettingsViewModel sVM = new SettingsViewModel(Config); 
             SettingsWindow settingsWindow = new()
             {
-                DataContext = svm
+                DataContext = sVM
             };
 
             settingsWindow.Show();

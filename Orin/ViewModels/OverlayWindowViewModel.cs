@@ -17,7 +17,6 @@ using Orin.Services;
 namespace Orin.ViewModels
 {
     //TODO: Window Resizing,, auto pls
-    //TODO: Click thru thanks! 
     public partial class OverlayWindowViewModel : ObservableRecipient, IRecipient<ToggleClickThroughMessage>, IRecipient<SessionChangedMessage>
     {
         
@@ -41,9 +40,9 @@ namespace Orin.ViewModels
         private bool _isPlaying;
 
         [ObservableProperty] 
-        private bool _displayPlaybackControls;
+        private bool _displayPlaybackControls = true;
 
-        private bool _isClickThrough;
+        private bool _isClickThrough = false;
 
         private int _lastLength;
 
@@ -96,7 +95,7 @@ namespace Orin.ViewModels
         {
             //observable recipient requirement
             IsActive = true;
-            
+            GetCurrentMedia().Wait();
             await AppLoop();
         }
         
@@ -148,7 +147,10 @@ namespace Orin.ViewModels
             try
             {
                 if (CurrentSession != null)
+                {
                     mediaProperties = await _mediaService.GetCurrentMediaPropertiesAsync(CurrentSession);
+                    await UpdatePlaybackStatus(CurrentSession.GetPlaybackInfo());
+                }
 
             }
             catch
@@ -337,25 +339,18 @@ namespace Orin.ViewModels
         }
         
 
-        public async void Receive(SessionChangedMessage Message)
+        public void Receive(SessionChangedMessage Message)
         {
             CurrentSession = Message.Session;
-            Task.Run(GetInfo).Wait();
+            Task.Run(GetInfo);
         }
         
         public void Receive(ToggleClickThroughMessage Message)
         {
             _isClickThrough = !_isClickThrough;
 
-            if (_isClickThrough)
-            {
-                DisplayPlaybackControls = false;
-            }
-            else
-            {
-                DisplayPlaybackControls = true;
-            }
-
+            DisplayPlaybackControls = !_isClickThrough;
+            
             int charCount = Song.Length;
             
             if (Artist != null)

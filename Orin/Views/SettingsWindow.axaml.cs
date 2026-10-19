@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,6 +13,11 @@ public partial class SettingsWindow : Window, IRecipient<CloseSettingsWindowMess
     public SettingsWindow()
     {
         InitializeComponent();
+    }
+
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
         WeakReferenceMessenger.Default.Register<CloseSettingsWindowMessage>(this);
     }
 
