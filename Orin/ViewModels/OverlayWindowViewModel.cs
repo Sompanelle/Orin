@@ -10,13 +10,13 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Orin.Helpers;
 using Orin.Models;
 using Orin.Services;
 
 
 namespace Orin.ViewModels
 {
-    //TODO: Window Resizing,, auto pls
     public partial class OverlayWindowViewModel : ObservableRecipient, IRecipient<ToggleClickThroughMessage>, IRecipient<SessionChangedMessage>
     {
         
@@ -119,9 +119,9 @@ namespace Orin.ViewModels
         
         private async Task GetInfo()
         {
-            if (!IsSessionValid(CurrentSession))
+            if (!MediaHelper.IsSessionValid(CurrentSession))
             {
-                UpdateCurrentSession();
+                CurrentSession = MediaHelper.UpdateCurrentSession(_mediaService);
                 await GetCurrentMedia();
             }
             else
@@ -135,10 +135,7 @@ namespace Orin.ViewModels
             }
         }
         
-        private void UpdateCurrentSession()
-        {
-            CurrentSession = _mediaService.UpdateCurrentSession();
-        }
+
         
         
         private async Task GetCurrentMedia()
@@ -255,14 +252,6 @@ namespace Orin.ViewModels
                 BorderRadius =  new CornerRadius(Config.OverlayBorderRadius);
         }
         
-        private bool IsSessionValid(GlobalSystemMediaTransportControlsSession? Session)
-        {
-            if (Session != null && Session.GetPlaybackInfo() != null)
-                return true;
-            else
-                return false;
-        }
-        
         void CalculateWindowSize(int CharCount, bool PlaybackControls)
         {
             double newLength = (CharCount * 9) + 70;
@@ -282,7 +271,7 @@ namespace Orin.ViewModels
         [RelayCommand]
         async Task PausePlay(GlobalSystemMediaTransportControlsSession Session)
         {
-            if (IsSessionValid(Session))
+            if (MediaHelper.IsSessionValid(Session))
             {
                 PlaybackInfo = _mediaService.GetPlaybackInfo(Session);
 
@@ -308,34 +297,29 @@ namespace Orin.ViewModels
             //TODO
         }
 
-
         [RelayCommand]
-        private async Task Skip(GlobalSystemMediaTransportControlsSession Session)
+        private async Task SkipPrev(string Action)
         {
-            if (IsSessionValid(Session))
+            if (MediaHelper.IsSessionValid(CurrentSession))
             {
-                Session.TrySkipNextAsync();
+                switch (Action)
+                {
+                    case "Skip":
+                        CurrentSession.TrySkipNextAsync();
+                        break;
+                    case "Prev":
+                        CurrentSession.TrySkipPreviousAsync();
+                        break;
+                }
                 await Task.Delay(200);
                 await GetCurrentMedia();
             }
         }
-
-        [RelayCommand]
-        private async Task Prev(GlobalSystemMediaTransportControlsSession Session)
-        {
-            if (IsSessionValid(Session))
-            {
-                Session.TrySkipPreviousAsync();
-                await Task.Delay(200);
-                await GetCurrentMedia();
-            }
-        }
-        
 
         public void Receive(SessionChangedMessage Message)
         {
             CurrentSession = Message.Session;
-            UpdateCurrentSession();
+            CurrentSession = MediaHelper.UpdateCurrentSession(_mediaService);
             _ = AppLoop();
         }
         

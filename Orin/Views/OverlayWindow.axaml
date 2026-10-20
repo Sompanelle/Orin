@@ -70,8 +70,8 @@
                             IsVisible="{Binding DisplayPlaybackControls}">
                     
                     <Button Classes="Playback"
-                            Command="{Binding PrevCommand}"
-                            CommandParameter="{Binding CurrentSession}">
+                            Command="{Binding SkipPrevCommand}"
+                            CommandParameter="Prev">
 
                         <Svg Path="../Assets/Prev.svg"  Classes="PlaybackControls"/>
                     </Button>
@@ -83,8 +83,8 @@
                     </Button>
                     
                     <Button Classes="Playback"
-                            Command="{Binding SkipCommand}"
-                            CommandParameter="{Binding CurrentSession}">
+                            Command="{Binding SkipPrevCommand}"
+                            CommandParameter="Skip">
                         <Svg Path="../Assets/Next.svg" Classes="PlaybackControls"/>
                     </Button>
                 </StackPanel>
