@@ -171,43 +171,27 @@ namespace Orin.ViewModels
             }
             else
             {
-                Song = _mediaProperties.Title;
-                Artist = _mediaProperties.Artist;
-                if (_mediaProperties.Thumbnail != null)
+                if (Song != _mediaProperties.Title)
                 {
-                    var imgStream = await _mediaProperties.Thumbnail.OpenReadAsync();
-                    MemoryStream stream = new MemoryStream();
-                    await imgStream.AsStream().CopyToAsync(stream);
-                    stream.Position = 0;
-                    Bitmap bitmap = new(stream); 
-                    Dispatcher.UIThread.Post(() =>
+                    Song = _mediaProperties.Title;
+                    Artist = _mediaProperties.Artist;
+                    if (_mediaProperties.Thumbnail != null)
                     {
-                        Thumbnail = bitmap;
-                    });
+                        var imgStream = await _mediaProperties.Thumbnail.OpenReadAsync();
+                        MemoryStream stream = new MemoryStream();
+                        await imgStream.AsStream().CopyToAsync(stream);
+                        stream.Position = 0;
+                        Bitmap bitmap = new(stream);
+                        Dispatcher.UIThread.Post(() => { Thumbnail = bitmap; });
 
-                    int charCount = (Artist.Length > Song.Length) ? Artist.Length : Song.Length;
-                    
-                    CalculateWindowSize(charCount, DisplayPlaybackControls);
+                        int charCount = (Artist.Length > Song.Length) ? Artist.Length : Song.Length;
+
+                        CalculateWindowSize(charCount, DisplayPlaybackControls);
+                    }
                 }
             }
 
 
-        }
-
-        void CalculateWindowSize(int CharCount, bool PlaybackControls)
-        {
-            double newLength = (CharCount * 9) + 70;
-
-            if (PlaybackControls)
-            {
-                newLength += 90;
-            }
-            
-            if (!newLength.Equals(_lastLength))
-            {
-                _lastLength = (int)newLength;
-                WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
-            }
         }
 
         // private async Task GetCurrentTimeLineInfo()
@@ -278,12 +262,21 @@ namespace Orin.ViewModels
             else
                 return false;
         }
-
-        [RelayCommand]
-        private void ToggleWindow(Window Window)
+        
+        void CalculateWindowSize(int CharCount, bool PlaybackControls)
         {
-            Window.IsVisible = !Window.IsVisible;
-            Window.ShowInTaskbar = !Window.ShowInTaskbar;
+            double newLength = (CharCount * 9) + 70;
+
+            if (PlaybackControls)
+            {
+                newLength += 90;
+            }
+            
+            if (!newLength.Equals(_lastLength))
+            {
+                _lastLength = (int)newLength;
+                WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(_lastLength));
+            }
         }
         
         [RelayCommand]
@@ -342,7 +335,8 @@ namespace Orin.ViewModels
         public void Receive(SessionChangedMessage Message)
         {
             CurrentSession = Message.Session;
-            Task.Run(GetInfo);
+            UpdateCurrentSession();
+            _ = AppLoop();
         }
         
         public void Receive(ToggleClickThroughMessage Message)
@@ -359,7 +353,6 @@ namespace Orin.ViewModels
             }
             
             CalculateWindowSize(charCount, DisplayPlaybackControls);
-
         }
     }
     
